@@ -1,0 +1,156 @@
+-- ===========================================
+-- 多表關聯欄位設定更新
+-- ===========================================
+
+-- 新增 5 個副表欄位到 FIELD_SETTINGS
+INSERT ALL 
+    INTO FIELD_SETTINGS (FIELD_ID, FIELD_NAME, DISPLAY_NAME, FIELD_TYPE, SHOW_IN_LIST, SHOW_IN_DETAIL, SORT_ORDER, CREATED_DATE, UPDATED_DATE, CREATED_BY, UPDATED_BY) 
+    VALUES (
+        'RP_LIB_TITLE', 
+        'lib.OVC_RP_LIB_TITLE', 
+        '其他號碼', 
+        'TEXT', 
+        'N', 
+        'Y', 
+        25, 
+        SYSDATE, 
+        SYSDATE, 
+        'SYSTEM', 
+        'SYSTEM'
+    )
+    INTO FIELD_SETTINGS (FIELD_ID, FIELD_NAME, DISPLAY_NAME, FIELD_TYPE, SHOW_IN_LIST, SHOW_IN_DETAIL, SORT_ORDER, CREATED_DATE, UPDATED_DATE, CREATED_BY, UPDATED_BY) 
+    VALUES (
+        'RP_OTHER_TITLE', 
+        'other_title.OVC_RP_OTHER_TITLE', 
+        '自編號', 
+        'TEXT', 
+        'N', 
+        'Y', 
+        26, 
+        SYSDATE, 
+        SYSDATE, 
+        'SYSTEM', 
+        'SYSTEM'
+    )
+    INTO FIELD_SETTINGS (FIELD_ID, FIELD_NAME, DISPLAY_NAME, FIELD_TYPE, SHOW_IN_LIST, SHOW_IN_DETAIL, SORT_ORDER, CREATED_DATE, UPDATED_DATE, CREATED_BY, UPDATED_BY) 
+    VALUES (
+        'RP_OTHER_NAME', 
+        'other_name.OVN_RP_OTHER_NAME', 
+        '其他名稱', 
+        'TEXT', 
+        'N', 
+        'Y', 
+        27, 
+        SYSDATE, 
+        SYSDATE, 
+        'SYSTEM', 
+        'SYSTEM'
+    )
+    INTO FIELD_SETTINGS (FIELD_ID, FIELD_NAME, DISPLAY_NAME, FIELD_TYPE, SHOW_IN_LIST, SHOW_IN_DETAIL, SORT_ORDER, CREATED_DATE, UPDATED_DATE, CREATED_BY, UPDATED_BY) 
+    VALUES (
+        'RP_KEYWORD', 
+        'keyword.OVN_RP_KEYWORD', 
+        '關鍵字', 
+        'TEXT', 
+        'Y', 
+        'Y', 
+        28, 
+        SYSDATE, 
+        SYSDATE, 
+        'SYSTEM', 
+        'SYSTEM'
+    )
+    INTO FIELD_SETTINGS (FIELD_ID, FIELD_NAME, DISPLAY_NAME, FIELD_TYPE, SHOW_IN_LIST, SHOW_IN_DETAIL, SORT_ORDER, CREATED_DATE, UPDATED_DATE, CREATED_BY, UPDATED_BY) 
+    VALUES (
+        'RP_PLAN_NAME', 
+        'plan.OVN_RP_PLAN_NAME', 
+        '計畫名稱', 
+        'TEXT', 
+        'N', 
+        'Y', 
+        29, 
+        SYSDATE, 
+        SYSDATE, 
+        'SYSTEM', 
+        'SYSTEM'
+    )
+    INTO FIELD_SETTINGS (FIELD_ID, FIELD_NAME, DISPLAY_NAME, FIELD_TYPE, SHOW_IN_LIST, SHOW_IN_DETAIL, SORT_ORDER, CREATED_DATE, UPDATED_DATE, CREATED_BY, UPDATED_BY) 
+    VALUES (
+        'RP_PLAN_CDE', 
+        'plan.OVC_RP_PLAN_CDE', 
+        '計畫代號', 
+        'TEXT', 
+        'N', 
+        'Y', 
+        30, 
+        SYSDATE, 
+        SYSDATE, 
+        'SYSTEM', 
+        'SYSTEM'
+    )
+SELECT * FROM dual;
+
+-- 更新現有欄位設定（調整顯示順序）
+UPDATE FIELD_SETTINGS 
+SET SORT_ORDER = CASE 
+    WHEN FIELD_ID = 'RP_NO' THEN 1
+    WHEN FIELD_ID = 'RP_NAME' THEN 2
+    WHEN FIELD_ID = 'MAIN_AUTHOR' THEN 3
+    WHEN FIELD_ID = 'CAT_NAME' THEN 4
+    WHEN FIELD_ID = 'TYPE_NAME' THEN 5
+    WHEN FIELD_ID = 'CSI_NAME' THEN 6
+    WHEN FIELD_ID = 'SECERT_LV_NAME' THEN 7
+    WHEN FIELD_ID = 'PUBLIC_DATE' THEN 8
+    WHEN FIELD_ID = 'TRAIN_TYPE_NAME' THEN 9
+    WHEN FIELD_ID = 'RP_KEYWORD' THEN 10
+    WHEN FIELD_ID = 'RP_LIB_TITLE' THEN 11
+    WHEN FIELD_ID = 'RP_OTHER_TITLE' THEN 12
+    WHEN FIELD_ID = 'RP_OTHER_NAME' THEN 13
+    WHEN FIELD_ID = 'RP_PLAN_NAME' THEN 14
+    WHEN FIELD_ID = 'RP_PLAN_CDE' THEN 15
+    ELSE SORT_ORDER
+END,
+UPDATED_DATE = SYSDATE,
+UPDATED_BY = 'SYSTEM'
+WHERE FIELD_ID IN (
+    'RP_NO', 'RP_NAME', 'MAIN_AUTHOR', 'CAT_NAME', 'TYPE_NAME', 
+    'CSI_NAME', 'SECERT_LV_NAME', 'PUBLIC_DATE', 'TRAIN_TYPE_NAME',
+    'RP_KEYWORD', 'RP_LIB_TITLE', 'RP_OTHER_TITLE', 'RP_OTHER_NAME',
+    'RP_PLAN_NAME', 'RP_PLAN_CDE'
+);
+
+-- 設定關鍵字欄位在列表中顯示
+UPDATE FIELD_SETTINGS 
+SET SHOW_IN_LIST = 'Y',
+    UPDATED_DATE = SYSDATE,
+    UPDATED_BY = 'SYSTEM'
+WHERE FIELD_ID = 'RP_KEYWORD';
+
+-- 驗證更新結果
+SELECT 
+    FIELD_ID,
+    DISPLAY_NAME,
+    FIELD_TYPE,
+    SHOW_IN_LIST,
+    SHOW_IN_DETAIL,
+    SORT_ORDER,
+    CREATED_DATE,
+    UPDATED_DATE
+FROM FIELD_SETTINGS 
+WHERE FIELD_ID IN (
+    'RP_LIB_TITLE', 'RP_OTHER_TITLE', 'RP_OTHER_NAME', 
+    'RP_KEYWORD', 'RP_PLAN_NAME', 'RP_PLAN_CDE'
+)
+ORDER BY SORT_ORDER;
+
+-- 檢查所有欄位設定順序
+SELECT 
+    FIELD_ID,
+    DISPLAY_NAME,
+    SHOW_IN_LIST,
+    SHOW_IN_DETAIL,
+    SORT_ORDER
+FROM FIELD_SETTINGS 
+ORDER BY SORT_ORDER, FIELD_ID;
+
+COMMIT;
