@@ -1,0 +1,1170 @@
+{% extends "base.html" %}
+
+{% block title %}搜尋結果 - Oracle 19c 資料查詢系統{% endblock %}
+
+{% block content %}
+<div class="search-results-container">
+    <!-- 搜尋結果標題 -->
+    <div class="results-header">
+        <h2>搜尋結果</h2>
+        <div class="search-summary">
+            {% if search_params %}
+                <p class="search-info">
+                    關鍵字: <strong>{{ search_params.keyword }}</strong> | 
+                    欄位: <strong>{{ search_params.field_display }}</strong> |
+                    類型: <strong>{{ search_params.type_display | join(', ') if search_params.type_display else '全部' }}</strong>
+                    {% if search_params.results_count is defined %}
+                        | 找到 <strong>{{ search_params.results_count }}</strong> 筆資料
+                    {% endif %}
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 錯誤訊息顯示 -->
+    {% if error %}
+        <div class="error-container">
+            <div class="error-icon">⚠️</div>
+            <h3>搜尋錯誤</h3>
+            <p>{{ error }}</p>
+            <div class="error-actions">
+                <a href="{{ url_for('index') }}" class="btn-back">返回搜尋頁面</a>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- 搜尋條件解析結果 -->
+    {% if search_params and search_params.search_conditions and not error %}
+        <div class="search-conditions">
+            <h3>搜尋條件解析</h3>
+            <div class="condition-details">
+                <div class="condition-item">
+                    <strong>資料庫欄位:</strong> {{ search_params.db_field }}
+                </div>
+                <div class="condition-item">
+                    <strong>選中類型:</strong> {{ search_params.selected_types | join(', ') if search_params.selected_types else '無' }}
+                </div>
+                <div class="condition-item">
+                    <strong>SQL 查詢:</strong>
+                    <pre class="sql-query">{{ search_params.search_conditions.sql_query }}</pre>
+                </div>
+                <div class="condition-item">
+                    <strong>綁定參數:</strong>
+                    <pre class="bind-params">{{ search_params.search_conditions.bind_params | tojson(indent=2) }}</pre>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- 搜尋結果表格 -->
+    {% if search_params and not error %}
+        <div class="results-section">
+            {% if search_params.results is defined and search_params.results %}
+                {% if search_params.results|length > 0 %}
+                    <!-- 匯出按鈕區域 -->
+                    <div class="export-section">
+                        <div class="export-info">
+                            <span class="result-count">找到 {{ search_params.results|length }} 筆資料</span>
+                        </div>
+                        <div class="export-buttons">
+                            <button class="btn-export-excel" onclick="exportToExcel()">
+                                📊 匯出 Excel
+                            </button>
+                            <button class="btn-export-csv" onclick="exportToCSV()">
+                                📄 匯出 CSV
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 有結果時顯示表格 -->
+                    <div class="results-table-container">
+                        <table class="results-table">
+                            <thead>
+                                <tr class="table-header">
+                                    <th class="header-title">題名</th>
+                                    <th class="header-author">撰寫人</th>
+                                    <th class="header-number">報告編號</th>
+                                    <th class="header-actions">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for result in search_params.results %}
+                                    <tr class="table-row {% if loop.index0 % 2 == 0 %}table-row-stripe{% endif %}" data-row-id="{{ loop.index0 }}">
+                                        <td class="cell-title">
+                                            <div class="title-container">
+                                                <a href="#" class="title-link" onclick="showDetail('{{ result.DOC_ID }}')">
+                                                    {{ result.title }}
+                                                </a>
+                                                <button class="btn-expand" onclick="toggleRowDetail('{{ loop.index0 }}')" title="展開/收起">
+                                                    <span class="expand-icon">▼</span>
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td class="cell-author">{{ result.author }}</td>
+                                        <td class="cell-number">{{ result.DOC_ID }}</td>
+                                        <td class="cell-actions">
+                                            <button class="btn-detail" onclick="showDetail('{{ result.DOC_ID }}')">
+                                                詳情
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- 展開的詳細資料列 -->
+                                    <tr class="table-row-detail" id="detail-{{ loop.index0 }}" style="display: none;">
+                                        <td colspan="4" class="cell-detail-container">
+                                            <div class="detail-content">
+                                                <div class="detail-section">
+                                                    <h4 class="detail-title">完整資訊</h4>
+                                                    <div class="detail-grid">
+                                                        <div class="detail-item">
+                                                            <label>資料類型：</label>
+                                                            <span class="type-badge {{ result.document_type | replace(' ', '-') | lower }}">
+                                                                {{ result.document_type }}
+                                                            </span>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <label>建立日期：</label>
+                                                            <span>{{ result.create_date }}</span>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <label>文件編號：</label>
+                                                            <span>{{ result.DOC_ID }}</span>
+                                                        </div>
+                                                        <div class="detail-item">
+                                                            <label>撰寫人：</label>
+                                                            <span>{{ result.author }}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                {% if result.description is defined %}
+                                                <div class="detail-section">
+                                                    <h4 class="detail-title">詳細摘要</h4>
+                                                    <div class="detail-description">
+                                                        {{ result.description }}
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                <div class="detail-actions">
+                                                    <button class="btn-detail-full" onclick="showDetail('{{ result.DOC_ID }}')">
+                                                        查看完整詳情
+                                                    </button>
+                                                    <button class="btn-download" onclick="downloadDocument('{{ result.DOC_ID }}')">
+                                                        下載文件
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <!-- 無結果時顯示友善提示 -->
+                    <div class="no-results-container">
+                        <div class="no-results-icon">🔍</div>
+                        <h3 class="no-results-title">查無相關資料</h3>
+                        <p class="no-results-message">
+                            請重新輸入關鍵字，或調整搜尋條件後再試一次
+                        </p>
+                        <div class="no-results-suggestions">
+                            <h4>建議：</h4>
+                            <ul>
+                                <li>檢查關鍵字拼寫是否正確</li>
+                                <li>嘗試使用不同的關鍵字</li>
+                                <li>調整搜尋欄位（全部欄位、題名、撰寫人、編號）</li>
+                                <li>檢查資料類型篩選條件</li>
+                            </ul>
+                        </div>
+                        <div class="no-results-actions">
+                            <a href="{{ url_for('index') }}" class="btn-primary">重新搜尋</a>
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <!-- 無搜尋結果資料時的預設顯示 -->
+                <div class="no-results-container">
+                    <div class="no-results-icon">📭</div>
+                    <h3 class="no-results-title">查無相關資料</h3>
+                    <p class="no-results-message">
+                        請重新輸入關鍵字
+                    </p>
+                    <div class="no-results-actions">
+                        <a href="{{ url_for('index') }}" class="btn-primary">重新搜尋</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <!-- 操作按鈕 -->
+    <div class="action-buttons">
+        <a href="{{ url_for('index') }}" class="btn-primary">重新搜尋</a>
+        {% if search_params and search_params.results is defined and search_params.results|length > 0 %}
+            <button class="btn-secondary" onclick="window.print()">列印結果</button>
+            <button class="btn-export" onclick="exportResults()">匯出結果</button>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// 展開/收起詳細資料
+function toggleRowDetail(rowIndex) {
+    const detailRow = document.getElementById(`detail-${rowIndex}`);
+    const expandIcon = document.querySelector(`[data-row-id="${rowIndex}"] .expand-icon`);
+    
+    if (detailRow.style.display === 'none' || detailRow.style.display === '') {
+        detailRow.style.display = 'table-row';
+        expandIcon.textContent = '▲';
+        expandIcon.parentElement.classList.add('expanded');
+    } else {
+        detailRow.style.display = 'none';
+        expandIcon.textContent = '▼';
+        expandIcon.parentElement.classList.remove('expanded');
+    }
+}
+
+// 顯示詳情功能（預留）
+function showDetail(docId) {
+    // 預留的詳情頁面跳轉邏輯
+    alert(`詳情功能開發中...\n文件編號: ${docId}`);
+    
+    // 未來可以跳轉到詳情頁面
+    // window.location.href = `/detail/${docId}`;
+}
+
+// 下載文件功能（預留）
+function downloadDocument(docId) {
+    // 預留的下載功能邏輯
+    alert(`下載功能開發中...\n文件編號: ${docId}`);
+    
+    // 未來可以實作文件下載
+    // window.location.href = `/download/${docId}`;
+}
+
+// 匯出 Excel 功能
+function exportToExcel() {
+    // 建立表單並提交到 /export 路由
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/export';
+    
+    // 添加搜尋參數
+    const searchParams = new URLSearchParams(window.location.search);
+    const params = searchParams.toString();
+    
+    if (params) {
+        // 如果有搜尋參數，將其傳遞給匯出路由
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'search_params';
+        input.value = params;
+        form.appendChild(input);
+    }
+    
+    // 添加匯出格式
+    const formatInput = document.createElement('input');
+    formatInput.type = 'hidden';
+    formatInput.name = 'format';
+    formatInput.value = 'excel';
+    form.appendChild(formatInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+}
+
+// 匯出 CSV 功能
+function exportToCSV() {
+    // 建立表單並提交到 /export 路由
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/export';
+    
+    // 添加搜尋參數
+    const searchParams = new URLSearchParams(window.location.search);
+    const params = searchParams.toString();
+    
+    if (params) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'search_params';
+        input.value = params;
+        form.appendChild(input);
+    }
+    
+    // 添加匯出格式
+    const formatInput = document.createElement('input');
+    formatInput.type = 'hidden';
+    formatInput.name = 'format';
+    formatInput.value = 'csv';
+    form.appendChild(formatInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+}
+
+// 表格列高亮效果
+document.addEventListener('DOMContentLoaded', function() {
+    const rows = document.querySelectorAll('.table-row');
+    rows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.classList.add('table-row-hover');
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.classList.remove('table-row-hover');
+        });
+    });
+});
+</script>
+
+<style>
+/* 搜尋結果頁面專用樣式 */
+.search-results-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.results-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.results-header h2 {
+    color: var(--text-primary);
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.search-summary {
+    margin-top: 1rem;
+}
+
+.search-info {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    background-color: var(--card-bg);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+    line-height: 1.6;
+}
+
+.search-info strong {
+    color: var(--text-primary);
+}
+
+/* 錯誤容器樣式 */
+.error-container {
+    text-align: center;
+    background-color: #FFF5F5;
+    border: 2px solid #FFB5B5;
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    margin: 2rem 0;
+    color: var(--text-primary);
+}
+
+.error-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.error-container h3 {
+    color: #D32F2F;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.error-container p {
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+}
+
+.error-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* 搜尋條件解析樣式 */
+.search-conditions {
+    background-color: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+}
+
+.search-conditions h3 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.condition-details {
+    display: grid;
+    gap: 1rem;
+}
+
+.condition-item {
+    padding: 1rem;
+    background-color: white;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+}
+
+.condition-item strong {
+    color: var(--primary-color);
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.sql-query, .bind-params {
+    background-color: #F8F9FA;
+    border: 1px solid #DEE2E6;
+    border-radius: 4px;
+    padding: 1rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    color: var(--text-primary);
+    margin: 0.5rem 0 0 0;
+}
+
+/* 匯出區域樣式 */
+.export-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.export-info {
+    display: flex;
+    align-items: center;
+}
+
+.result-count {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+}
+
+.export-buttons {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.btn-export-excel, .btn-export-csv {
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-export-excel {
+    background: linear-gradient(135deg, #2E7D32, #43A047);
+    color: white;
+    box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.btn-export-excel:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px var(--shadow-medium);
+}
+
+.btn-export-csv {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.btn-export-csv:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px var(--shadow-medium);
+}
+
+/* 標題容器樣式 */
+.title-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.btn-expand {
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.btn-expand:hover {
+    background-color: var(--border-light);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-expand.expanded {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.expand-icon {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+/* 詳細資料列樣式 */
+.table-row-detail {
+    background-color: var(--border-light) !important;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.cell-detail-container {
+    padding: 0;
+    border: none;
+}
+
+.detail-content {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--border-light), var(--card-bg));
+    border-radius: 8px;
+    margin: 0.5rem;
+    box-shadow: inset 0 2px 4px var(--shadow-light);
+}
+
+.detail-section {
+    margin-bottom: 1.5rem;
+}
+
+.detail-section:last-child {
+    margin-bottom: 0;
+}
+
+.detail-title {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: white;
+    border-radius: 6px;
+    border: 1px solid var(--border-light);
+}
+
+.detail-item label {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.9rem;
+    min-width: 80px;
+}
+
+.detail-item span {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.detail-description {
+    color: var(--text-primary);
+    line-height: 1.6;
+    padding: 1rem;
+    background-color: white;
+    border-radius: 6px;
+    border: 1px solid var(--border-light);
+    font-size: 0.95rem;
+}
+
+.detail-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-detail-full, .btn-download {
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-detail-full {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.btn-detail-full:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px var(--shadow-medium);
+}
+
+.btn-download {
+    background: linear-gradient(135deg, var(--accent-color), var(--warning-color));
+    color: var(--text-primary);
+    box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.btn-download:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px var(--shadow-medium);
+}
+
+/* 響應式設計調整 */
+@media (max-width: 768px) {
+    .export-section {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .export-buttons {
+        justify-content: center;
+    }
+    
+    .title-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .btn-expand {
+        align-self: flex-end;
+    }
+    
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .detail-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .btn-detail-full, .btn-download {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .export-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-export-excel, .btn-export-csv {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .detail-content {
+        padding: 1rem;
+        margin: 0.25rem;
+    }
+    
+    .detail-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .detail-item label {
+        min-width: auto;
+    }
+}
+
+/* 結果區域樣式 */
+.results-section {
+    margin: 2rem 0;
+}
+
+.results-table-container {
+    background-color: white;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px var(--shadow-medium);
+}
+
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.table-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+}
+
+.table-header th {
+    padding: 1rem 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 1rem;
+    border-bottom: 2px solid var(--border-color);
+    white-space: nowrap;
+}
+
+.header-title {
+    width: 35%;
+    min-width: 250px;
+}
+
+.header-author {
+    width: 15%;
+    min-width: 120px;
+}
+
+.header-number {
+    width: 15%;
+    min-width: 120px;
+}
+
+.header-type {
+    width: 12%;
+    min-width: 100px;
+}
+
+.header-date {
+    width: 13%;
+    min-width: 110px;
+}
+
+.header-actions {
+    width: 10%;
+    min-width: 80px;
+    text-align: center;
+}
+
+/* 表格內容樣式 */
+.table-row {
+    border-bottom: 1px solid var(--border-light);
+    transition: all 0.3s ease;
+}
+
+.table-row:last-child {
+    border-bottom: none;
+}
+
+/* 斑馬紋效果 - 淺黃與米色系 */
+.table-row-stripe {
+    background-color: var(--bg-color); /* 淺黃色 #FFFFE0 */
+}
+
+.table-row:not(.table-row-stripe) {
+    background-color: var(--card-bg); /* 米色 #FFFACD */
+}
+
+.table-row-hover {
+    background-color: var(--border-light) !important; /* 小麥色 #F5DEB3 */
+    transform: scale(1.01);
+    box-shadow: 0 2px 8px var(--shadow-light);
+}
+
+.table-row td {
+    padding: 0.875rem 0.75rem;
+    vertical-align: middle;
+    border-right: 1px solid var(--border-light);
+}
+
+.table-row td:last-child {
+    border-right: none;
+}
+
+.cell-title {
+    font-weight: 500;
+}
+
+.title-link {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 600;
+    display: block;
+    transition: color 0.3s ease;
+}
+
+.title-link:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.cell-author, .cell-number, .cell-date {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.cell-type {
+    text-align: center;
+}
+
+.type-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* 不同資料類型的顏色 */
+.type-badge.技術報告 {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.type-badge.史政 {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.type-badge.史政照片 {
+    background-color: var(--accent-color);
+    color: var(--text-primary);
+}
+
+.type-badge.逸光報 {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.cell-actions {
+    text-align: center;
+}
+
+.btn-detail {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px var(--shadow-light);
+}
+
+.btn-detail:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px var(--shadow-medium);
+}
+
+/* 無結果容器樣式 */
+.no-results-container {
+    text-align: center;
+    background-color: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    margin: 2rem 0;
+}
+
+.no-results-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-muted);
+}
+
+.no-results-title {
+    color: var(--text-primary);
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.no-results-message {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.no-results-suggestions {
+    text-align: left;
+    max-width: 500px;
+    margin: 2rem auto;
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+}
+
+.no-results-suggestions h4 {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.no-results-suggestions ul {
+    color: var(--text-secondary);
+    line-height: 1.8;
+    padding-left: 1.5rem;
+}
+
+.no-results-suggestions li {
+    margin-bottom: 0.5rem;
+}
+
+.no-results-actions {
+    margin-top: 2rem;
+}
+
+/* 操作按鈕樣式 */
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 2px solid var(--border-color);
+}
+
+.btn-primary, .btn-secondary, .btn-export {
+    padding: 0.875rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    box-shadow: 0 4px 8px var(--shadow-medium);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px var(--shadow-dark);
+}
+
+.btn-secondary {
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--border-light);
+    transform: translateY(-1px);
+}
+
+.btn-export {
+    background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+    color: var(--text-primary);
+    box-shadow: 0 4px 8px var(--shadow-medium);
+}
+
+.btn-export:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px var(--shadow-dark);
+}
+
+.btn-back {
+    background: linear-gradient(135deg, var(--warning-color), var(--secondary-color));
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px var(--shadow-medium);
+}
+
+/* 響應式設計 */
+@media (max-width: 1200px) {
+    .search-results-container {
+        padding: 1.5rem;
+    }
+    
+    .header-title {
+        min-width: 200px;
+    }
+    
+    .header-author, .header-number {
+        min-width: 100px;
+    }
+}
+
+@media (max-width: 768px) {
+    .search-results-container {
+        padding: 1rem;
+    }
+    
+    .results-header h2 {
+        font-size: 1.8rem;
+    }
+    
+    .search-info {
+        font-size: 1rem;
+        padding: 0.75rem;
+    }
+    
+    .results-table-container {
+        overflow-x: auto;
+    }
+    
+    .results-table {
+        min-width: 800px;
+        font-size: 0.85rem;
+    }
+    
+    .table-header th {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .table-row td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .btn-detail {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.75rem;
+    }
+    
+    .no-results-container {
+        padding: 2rem 1rem;
+    }
+    
+    .no-results-title {
+        font-size: 1.5rem;
+    }
+    
+    .no-results-suggestions {
+        padding: 1rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn-primary, .btn-secondary, .btn-export {
+        width: 100%;
+        max-width: 300px;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-results-container {
+        padding: 0.75rem;
+    }
+    
+    .results-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .search-conditions {
+        padding: 1.5rem;
+    }
+    
+    .condition-item {
+        padding: 0.75rem;
+    }
+    
+    .sql-query, .bind-params {
+        font-size: 0.8rem;
+        padding: 0.75rem;
+    }
+    
+    .no-results-container {
+        padding: 1.5rem 0.75rem;
+    }
+    
+    .no-results-icon {
+        font-size: 3rem;
+    }
+    
+    .no-results-title {
+        font-size: 1.3rem;
+    }
+    
+    .no-results-suggestions {
+        padding: 0.75rem;
+    }
+    
+    .table-header th {
+        font-size: 0.8rem;
+        padding: 0.5rem 0.25rem;
+    }
+    
+    .table-row td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.8rem;
+    }
+    
+    .btn-detail {
+        padding: 0.3rem 0.5rem;
+        font-size: 0.7rem;
+    }
+}
+</style>
+{% endblock %}

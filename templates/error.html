@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}系統錯誤 - Oracle 19c 資料查詢系統{% endblock %}
+
+{% block content %}
+<div class="error-page-container">
+    <div class="error-content">
+        <div class="error-icon">⚠️</div>
+        <h1 class="error-title">系統錯誤</h1>
+        <p class="error-message">
+            抱歉，系統處理您的請求時發生了錯誤。
+        </p>
+        <p class="error-description">
+            請稍後再試，或聯繫系統管理員。
+        </p>
+        <div class="error-actions">
+            <a href="{{ url_for('index') }}" class="btn-primary">返回首頁</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-page-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    padding: 2rem;
+}
+
+.error-content {
+    text-align: center;
+    background-color: var(--card-bg);
+    padding: 3rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px var(--shadow-medium);
+    border: 2px solid var(--border-color);
+    max-width: 500px;
+}
+
+.error-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    color: var(--warning-color);
+}
+
+.error-title {
+    color: var(--text-primary);
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.error-message {
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.error-description {
+    color: var(--text-muted);
+    font-size: 1rem;
+    margin-bottom: 2rem;
+}
+
+.error-actions {
+    margin-top: 2rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 0.875rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px var(--shadow-medium);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px var(--shadow-dark);
+}
+
+@media (max-width: 768px) {
+    .error-page-container {
+        padding: 1rem;
+    }
+    
+    .error-content {
+        padding: 2rem 1.5rem;
+    }
+    
+    .error-icon {
+        font-size: 3rem;
+    }
+    
+    .error-title {
+        font-size: 1.5rem;
+    }
+    
+    .error-message {
+        font-size: 1.1rem;
+    }
+}
+</style>
+{% endblock %}

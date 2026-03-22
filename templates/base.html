@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Oracle 19c 資料查詢系統{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Banner 區域 -->
+        <div class="banner">
+            <img src="{{ url_for('static', filename='images/banner-logo.png') }}" 
+                 alt="系統 Logo" class="banner-image">
+            <h1 class="banner-title">Oracle 19c 資料查詢系統</h1>
+        </div>
+        
+        <!-- 導覽列 - 固定在頂部 -->
+        <nav class="navbar">
+            <div class="nav-links">
+                <a href="{{ url_for('search.index') }}" class="{% if request.endpoint == 'search.index' %}active{% endif %}">首頁</a>
+                <a href="{{ url_for('search.advanced') }}" class="{% if request.endpoint == 'search.advanced' %}active{% endif %}">查詢</a>
+            </div>
+        </nav>
+        
+        <!-- 主要內容區域 -->
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+        
+        <!-- 頁尾 -->
+        <footer class="footer">
+            <p>&copy; 2026 Oracle 19c 資料查詢系統 - 基於 Windows Server 2022 離線環境</p>
+        </footer>
+    </div>
+</body>
+</html>

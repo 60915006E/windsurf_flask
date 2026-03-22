@@ -1,0 +1,681 @@
+{% extends "base.html" %}
+
+{% block title %}資料查詢 - Oracle 19c 資料查詢系統{% endblock %}
+
+{% block content %}
+<div class="search-page-container">
+    <!-- 搜尋標題 -->
+    <div class="search-header">
+        <h2>資料查詢</h2>
+        <p class="search-description">請選擇查詢欄位並輸入關鍵字進行搜尋</p>
+    </div>
+    
+    <!-- 主要搜尋區域 -->
+    <div class="search-main-section">
+        <!-- 搜尋列 -->
+        <div class="search-bar-container">
+            <form id="searchForm" class="search-form-horizontal" method="POST" action="{{ url_for('search') }}">
+                <!-- 下拉選單 -->
+                <div class="search-field-selector">
+                    <select id="searchField" name="searchField" class="field-dropdown">
+                        <option value="all" selected>全部欄位</option>
+                        <option value="title">題名</option>
+                        <option value="author">作者</option>
+                        <option value="number">編號</option>
+                    </select>
+                </div>
+                
+                <!-- 關鍵字輸入框 -->
+                <div class="search-input-container">
+                    <input type="text" 
+                           id="searchKeyword" 
+                           name="searchKeyword" 
+                           class="search-keyword-input"
+                           placeholder="請輸入關鍵字..."
+                           required>
+                </div>
+                
+                <!-- 搜尋按鈕 -->
+                <div class="search-actions">
+                    <button type="submit" class="btn-search">
+                        <span class="btn-icon">🔍</span>
+                        <span>開始搜尋</span>
+                    </button>
+                    <a href="{{ url_for('advanced') }}" class="btn-advanced">
+                        <span class="btn-icon">⚙️</span>
+                        <span>進階搜尋</span>
+                    </a>
+                </div>
+                
+                <!-- 進階搜尋連結 -->
+                <div class="advanced-search-link">
+                    <a href="/advanced" class="link-advanced">進階搜尋</a>
+                </div>
+            </form>
+        </div>
+        
+        <!-- 核取方塊群組 -->
+        <div class="checkbox-group-container">
+            <h3 class="checkbox-group-title">資料類型篩選</h3>
+            <div class="checkbox-options">
+                <div class="checkbox-item">
+                    <input type="checkbox" 
+                           id="tech_report" 
+                           name="document_types" 
+                           value="tech_report" 
+                           checked
+                           class="custom-checkbox">
+                    <label for="tech_report" class="checkbox-label">
+                        <span class="checkbox-custom"></span>
+                        技術報告
+                    </label>
+                </div>
+                
+                <div class="checkbox-item">
+                    <input type="checkbox" 
+                           id="history_politics" 
+                           name="document_types" 
+                           value="history_politics" 
+                           checked
+                           class="custom-checkbox">
+                    <label for="history_politics" class="checkbox-label">
+                        <span class="checkbox-custom"></span>
+                        史政
+                    </label>
+                </div>
+                
+                <div class="checkbox-item">
+                    <input type="checkbox" 
+                           id="history_photos" 
+                           name="document_types" 
+                           value="history_photos" 
+                           checked
+                           class="custom-checkbox">
+                    <label for="history_photos" class="checkbox-label">
+                        <span class="checkbox-custom"></span>
+                        史政照片
+                    </label>
+                </div>
+                
+                <div class="checkbox-item">
+                    <input type="checkbox" 
+                           id="yiguang_report" 
+                           name="document_types" 
+                           value="yiguang_report" 
+                           checked
+                           class="custom-checkbox">
+                    <label for="yiguang_report" class="checkbox-label">
+                        <span class="checkbox-custom"></span>
+                        逸光報
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 搜尋結果區域 -->
+    <div id="searchResults" class="results-section" style="display: none;">
+        <div class="results-header">
+            <h3>搜尋結果</h3>
+            <div class="results-count">
+                找到 <span id="resultCount">0</span> 筆資料
+            </div>
+        </div>
+        <div id="resultsContent" class="results-content">
+            <!-- 搜尋結果將顯示在這裡 -->
+        </div>
+    </div>
+</div>
+
+<script>
+// 搜尋表單處理
+document.getElementById('searchForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const searchField = document.getElementById('searchField').value;
+    const searchKeyword = document.getElementById('searchKeyword').value;
+    const documentTypes = getSelectedDocumentTypes();
+    
+    // 顯示搜尋中狀態
+    showSearchLoading();
+    
+    // 模擬搜尋過程
+    setTimeout(() => {
+        performSearch(searchField, searchKeyword, documentTypes);
+    }, 800);
+});
+
+// 核取方塊變化監聽
+document.querySelectorAll('input[name="document_types"]').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        updateCheckboxStyles();
+    });
+});
+
+// 取得選中的文件類型
+function getSelectedDocumentTypes() {
+    const checkboxes = document.querySelectorAll('input[name="document_types"]:checked');
+    return Array.from(checkboxes).map(cb => cb.value);
+}
+
+// 顯示搜尋中狀態
+function showSearchLoading() {
+    const resultsSection = document.getElementById('searchResults');
+    const resultsContent = document.getElementById('resultsContent');
+    
+    resultsSection.style.display = 'block';
+    resultsContent.innerHTML = `
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">搜尋中，請稍候...</p>
+        </div>
+    `;
+}
+
+// 執行搜尋
+function performSearch(field, keyword, types) {
+    const resultsContent = document.getElementById('resultsContent');
+    const resultCount = document.getElementById('resultCount');
+    
+    // 模擬搜尋結果
+    const mockResults = generateMockResults(field, keyword, types);
+    
+    resultCount.textContent = mockResults.length;
+    
+    if (mockResults.length === 0) {
+        resultsContent.innerHTML = `
+            <div class="no-results">
+                <div class="no-results-icon">📭</div>
+                <h4>找不到符合的資料</h4>
+                <p>請調整搜尋條件後再試一次</p>
+            </div>
+        `;
+    } else {
+        resultsContent.innerHTML = mockResults.map(result => `
+            <div class="result-item">
+                <div class="result-title">${result.title}</div>
+                <div class="result-meta">
+                    <span class="result-type">${result.type}</span>
+                    <span class="result-author">${result.author}</span>
+                    <span class="result-number">${result.number}</span>
+                </div>
+                <div class="result-description">${result.description}</div>
+            </div>
+        `).join('');
+    }
+}
+
+// 生成模擬搜尋結果
+function generateMockResults(field, keyword, types) {
+    // 這裡將來會連接到實際的資料庫查詢
+    return [
+        {
+            title: '範例技術報告 - ' + keyword,
+            type: '技術報告',
+            author: '張工程師',
+            number: 'TR2024-001',
+            description: '這是一份關於 ' + keyword + ' 的詳細技術報告...'
+        }
+    ];
+}
+
+// 更新核取方塊樣式
+function updateCheckboxStyles() {
+    document.querySelectorAll('.checkbox-item').forEach(item => {
+        const checkbox = item.querySelector('input[type="checkbox"]');
+        const label = item.querySelector('.checkbox-label');
+        
+        if (checkbox.checked) {
+            label.classList.add('checked');
+        } else {
+            label.classList.remove('checked');
+        }
+    });
+}
+
+// 初始化頁面
+document.addEventListener('DOMContentLoaded', function() {
+    updateCheckboxStyles();
+});
+</script>
+
+<style>
+/* 搜尋頁面專用樣式 */
+.search-page-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.search-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.search-header h2 {
+    color: var(--text-primary);
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.search-description {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+/* 主要搜尋區域 */
+.search-main-section {
+    background-color: var(--card-bg);
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px var(--shadow-medium);
+    border: 2px solid var(--border-color);
+    margin-bottom: 2rem;
+}
+
+/* 搜尋列容器 */
+.search-bar-container {
+    margin-bottom: 2.5rem;
+}
+
+.search-form-horizontal {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* 下拉選單樣式 */
+.search-field-selector {
+    flex: 0 0 150px;
+}
+
+.field-dropdown {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    background-color: white;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.field-dropdown:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 3px var(--shadow-light);
+}
+
+/* 關鍵字輸入框樣式 */
+.search-input-container {
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-keyword-input {
+    width: 100%;
+    padding: 0.875rem 1.25rem;
+    border: 3px solid var(--primary-color);
+    border-radius: 8px;
+    background-color: white;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.search-keyword-input:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 3px var(--shadow-light);
+    transform: translateY(-1px);
+}
+
+.search-keyword-input::placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* 搜尋按鈕樣式 */
+.search-button-container {
+    flex: 0 0 auto;
+}
+
+.btn-search {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 0.875rem 2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px var(--shadow-medium);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-search:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px var(--shadow-medium);
+}
+
+.btn-advanced {
+    background: linear-gradient(135deg, var(--accent-color), var(--warning-color));
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 8px var(--shadow-light);
+}
+
+.btn-advanced:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px var(--shadow-medium);
+}
+
+.btn-search:active {
+    transform: translateY(0);
+}
+
+.btn-icon {
+    font-size: 1.2rem;
+}
+
+/* 進階搜尋連結樣式 */
+.advanced-search-link {
+    flex: 0 0 auto;
+    margin-left: 1rem;
+}
+
+.link-advanced {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+}
+
+.link-advanced:hover {
+    color: var(--secondary-color);
+    border-bottom-color: var(--secondary-color);
+    background-color: rgba(255, 140, 0, 0.1);
+}
+
+/* 核取方塊群組樣式 */
+.checkbox-group-container {
+    border-top: 2px solid var(--border-color);
+    padding-top: 2rem;
+}
+
+.checkbox-group-title {
+    color: var(--text-primary);
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+.checkbox-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+}
+
+.custom-checkbox {
+    display: none;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.checkbox-custom {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--primary-color);
+    border-radius: 4px;
+    margin-right: 0.75rem;
+    background-color: white;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.checkbox-custom::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.custom-checkbox:checked + .checkbox-label .checkbox-custom {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.custom-checkbox:checked + .checkbox-label .checkbox-custom::after {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.checkbox-label:hover {
+    color: var(--secondary-color);
+}
+
+.checkbox-label:hover .checkbox-custom {
+    border-color: var(--secondary-color);
+    transform: scale(1.05);
+}
+
+/* 搜尋結果區域樣式 */
+.results-section {
+    background-color: var(--card-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px var(--shadow-medium);
+    border: 2px solid var(--border-color);
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.results-header h3 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.results-count {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.results-count span {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.loading-container {
+    text-align: center;
+    padding: 3rem;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border-light);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+    color: var(--warning-color);
+    font-style: italic;
+    font-size: 1.1rem;
+}
+
+.no-results {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+}
+
+.no-results-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.no-results h4 {
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.result-item {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-light);
+    transition: all 0.3s ease;
+}
+
+.result-item:hover {
+    box-shadow: 0 2px 8px var(--shadow-light);
+    transform: translateY(-1px);
+}
+
+.result-title {
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.result-meta {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.result-type {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.result-author, .result-number {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.result-description {
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .search-page-container {
+        padding: 1rem;
+    }
+    
+    .search-main-section {
+        padding: 1.5rem;
+    }
+    
+    .search-form-horizontal {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .search-field-selector,
+    .search-button-container,
+    .advanced-search-link {
+        flex: 1;
+        width: 100%;
+    }
+    
+    .advanced-search-link {
+        margin-left: 0;
+        text-align: center;
+        margin-top: 1rem;
+    }
+    
+    .checkbox-options {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .results-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-header h2 {
+        font-size: 1.8rem;
+    }
+    
+    .btn-search {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+    }
+    
+    .field-dropdown,
+    .search-keyword-input {
+        font-size: 0.9rem;
+    }
+}
+</style>
+{% endblock %}
