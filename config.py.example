@@ -1,0 +1,219 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Oracle 資料庫配置檔案範例
+
+複製此檔案為 config.py 並修改為實際的資料庫連線參數。
+此檔案適用於內網環境的手動配置。
+
+優先順序：
+1. config.py（此檔案）
+2. .env 檔案
+3. 環境變數
+4. 預設值（開發環境）
+
+作者：系統管理員
+建立日期：2026-03-02
+版本：1.0.0
+"""
+
+# Oracle 資料庫連線參數
+ORACLE_HOST = "192.168.1.100"        # 資料庫伺服器 IP 位址
+ORACLE_PORT = "1521"                 # 資料庫端口
+ORACLE_SERVICE_NAME = "ORCLPDB1"      # 服務名稱（推薦使用）
+# ORACLE_SID = "ORCL"                # SID（與 Service Name 擇一使用）
+
+ORACLE_USERNAME = "your_username"     # 資料庫使用者名稱
+ORACLE_PASSWORD = "your_password"     # 資料庫密碼
+
+# 連線池設定（可選，將使用預設值）
+DB_POOL_MIN = 2                       # 最小連線數
+DB_POOL_MAX = 5                       # 最大連線數
+DB_POOL_INCREMENT = 1                 # 連線增量
+
+# 連線超時設定（可選）
+DB_CONNECT_TIMEOUT = 30               # 連線超時（秒）
+DB_SESSION_TIMEOUT = 60               # 會話超時（秒）
+
+# NLS 設定（可選）
+NLS_DATE_FORMAT = "YYYY-MM-DD HH24:MI:SS"
+NLS_TIMESTAMP_FORMAT = "YYYY-MM-DD HH24:MI:SS.FF"
+NLS_LANGUAGE = "TRADITIONAL CHINEAN"
+NLS_TERRITORY = "TAIWAN"
+
+# 日誌設定（可選）
+DB_LOG_LEVEL = "INFO"                 # DEBUG, INFO, WARNING, ERROR
+DB_LOG_SQL = False                    # 是否記錄 SQL 語句
+
+# 開發環境設定（僅在開發時使用）
+DEVELOPMENT_MODE = False               # 開發模式標記
+MOCK_DATA = False                      # 是否使用模擬資料
+
+# 內網環境特定設定
+INTERNAL_NETWORK = True                # 內網環境標記
+FIREWALL_ENABLED = True                # 防火牆啟用
+VPN_REQUIRED = False                   # 是否需要 VPN
+
+# 備用資料庫設定（可選）
+BACKUP_DB_HOST = "192.168.1.101"
+BACKUP_DB_PORT = "1521"
+BACKUP_DB_SERVICE_NAME = "ORCLPDB2"
+BACKUP_DB_USERNAME = "backup_user"
+BACKUP_DB_PASSWORD = "backup_password"
+
+# 資料庫版本資訊
+ORACLE_VERSION = "19c"                 # Oracle 版本
+COMPATIBILITY_VERSION = "19.0.0"      # 相容性版本
+
+# 效能調整參數
+FETCH_SIZE = 1000                      # 擷取大小
+ARRAY_SIZE = 100                       # 陣列大小
+PREFETCH_ROWS = 100                    # 預取列數
+
+# 安全性設定
+SSL_ENABLED = False                    # SSL 加密
+WALLET_LOCATION = ""                   # 錢包位置
+SSL_SERVER_DN_MATCH = False            # SSL DN 匹配
+
+# 監控設定
+ENABLE_MONITORING = True               # 啟用監控
+METRICS_COLLECTION = True              # 收集指標
+PERFORMANCE_SCHEMA = True              # 效能綱要
+
+# 測試連線設定
+TEST_CONNECTION_ON_STARTUP = True       # 啟動時測試連線
+HEALTH_CHECK_INTERVAL = 300            # 健康檢查間隔（秒）
+
+# 交易設定
+AUTOCOMMIT = False                     # 自動提交
+ISOLATION_LEVEL = "READ_COMMITTED"     # 交易隔離等級
+
+# 字元集設定
+CHARACTER_SET = "AL32UTF8"             # 字元集
+NCHARACTER_SET = "AL16UTF16"           # 國家字元集
+
+# 時區設定
+TIMEZONE = "Asia/Taipei"               # 時區
+
+# 應用程式標識
+APPLICATION_NAME = "Oracle_19c_Query_System"
+APPLICATION_MODULE = "Database_Manager"
+APPLICATION_ACTION = "Query"
+
+# 資料庫操作員設定
+DBA_USERNAME = "sys"                   # DBA 使用者名稱
+DBA_PASSWORD = "your_dba_password"     # DBA 密碼
+DBA_ROLE = "SYSDBA"                    # DBA 角色
+
+# 資料表空間設定
+DEFAULT_TABLESPACE = "USERS"           # 預設表空間
+TEMP_TABLESPACE = "TEMP"               # 暫存表空間
+
+# 索引設定
+DEFAULT_INDEX_TABLESPACE = "USERS"     # 預設索引表空間
+
+# 備份與恢復設定
+BACKUP_ENABLED = True                   # 啟用備份
+BACKUP_RETENTION_DAYS = 7              # 備份保留天數
+ARCHIVE_LOG_MODE = True                # 歸檔日誌模式
+
+# 分區設定
+PARTITIONING_ENABLED = False           # 啟用分區
+DEFAULT_PARTITION_TABLESPACE = "USERS"  # 預設分區表空間
+
+# 複寫設定
+REPLICATION_ENABLED = False             # 啟用複寫
+MASTER_DB_HOST = ""                    # 主資料庫主機
+SLAVE_DB_HOST = ""                     # 從資料庫主機
+
+# 叢集設定
+CLUSTER_ENABLED = False                # 啟用叢集
+SCAN_NAME = ""                         # 叢集掃描名稱
+NODE_NAMES = []                        # 節點名稱列表
+
+# 負載平衡設定
+LOAD_BALANCE_ENABLED = False           # 啟用負載平衡
+FAILOVER_ENABLED = False               # 啟用故障轉移
+
+# 連線池詳細設定
+POOL_GETMODE = "NOWAIT"                # 取得模式
+POOL_NOWAIT = True                     # 不等待
+POOL_HOMOGENEOUS = True                # 同質性
+POOL_INCREMENT = 1                     # 增量
+POOL_SESSION_CALLBACK = True           # 會話回呼
+POOL_CONNECTION_CLASS = ""             # 連線類別
+
+# 快取設定
+RESULT_CACHE_ENABLED = False           # 結果快取
+CLIENT_RESULT_CACHE_SIZE = 0           # 用戶端結果快取大小
+
+# 統計資料設定
+STATISTICS_LEVEL = "TYPICAL"           # 統計資料級別
+OPTIMIZER_FEATURES_ENABLE = ""         # 優化器功能啟用
+
+# 追蹤設定
+SQL_TRACE = False                      # SQL 追蹤
+TIMED_STATISTICS = True                # 計時統計
+MAX_DUMP_FILE_SIZE = "UNLIMITED"       # 最大傾印檔案大小
+
+# 等待事件設定
+WAIT_EVENTS_ENABLED = True             # 等待事件啟用
+LOCK_TIMEOUT = 60                      # 鎖定超時
+
+# 記憶體設定
+SGA_TARGET = ""                        # SGA 目標
+PGA_TARGET = ""                        # PGA 目標
+MEMORY_TARGET = ""                     # 記憶體目標
+
+# 程序設定
+PROCESSES = 300                        # 程序數量
+SESSIONS = 500                         # 會話數量
+TRANSACTIONS = 600                     # 交易數量
+
+# 其他進階設定
+ADVANCED_SECURITY_ENABLED = False      # 進階安全性
+AUDIT_TRAIL = "DB"                     # 審計追蹤
+FINE_GRAINED_AUDITING = False          # 細粒度審計
+
+# 自訂設定（可根據需要添加）
+CUSTOM_SETTING_1 = ""
+CUSTOM_SETTING_2 = ""
+
+# 版本控制
+CONFIG_VERSION = "1.0.0"
+LAST_MODIFIED = "2026-03-02"
+MODIFIED_BY = "System Administrator"
+
+# 設定檔驗證
+def validate_config():
+    """驗證配置檔案的完整性"""
+    required_vars = [
+        'ORACLE_HOST',
+        'ORACLE_PORT', 
+        'ORACLE_USERNAME',
+        'ORACLE_PASSWORD'
+    ]
+    
+    missing_vars = []
+    for var in required_vars:
+        if not globals().get(var):
+            missing_vars.append(var)
+    
+    if missing_vars:
+        raise ValueError(f"缺少必要的配置變數: {', '.join(missing_vars)}")
+    
+    # 檢查 Service Name 或 SID
+    if not globals().get('ORACLE_SERVICE_NAME') and not globals().get('ORACLE_SID'):
+        raise ValueError("必須設定 ORACLE_SERVICE_NAME 或 ORACLE_SID")
+    
+    print("✅ 配置檔案驗證通過")
+
+# 如果直接執行此檔案，則進行驗證
+if __name__ == "__main__":
+    try:
+        validate_config()
+        print("🎉 Oracle 資料庫配置檔案準備就緒")
+    except ValueError as e:
+        print(f"❌ 配置錯誤: {e}")
+    except Exception as e:
+        print(f"❌ 驗證失敗: {e}")

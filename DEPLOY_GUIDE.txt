@@ -1,0 +1,238 @@
+這是一個非常明智的做法。在離線的內網環境（Air-gapped environment）開發，最痛苦的就是遇到問題無法隨時 Google。
+
+我已經為你整理了一份 **《EarthSys 內網部署與維護全攻略》**。你可以請 **Cascade** 直接將以下內容存成專案根目錄下的 `DEPLOY_GUIDE.md`。
+
+---
+
+# 🌍 EarthSys 內網部署與維護全攻略 (Windows Server 2022)
+
+## 📋 一、 離線環境準備 (有網電腦操作)
+
+由於伺服器無法連網，必須先在有網的電腦下載所有依賴。
+
+1. **匯出需求清單**：
+`pip freeze > requirements.txt`
+2. **下載離線安裝包**：
+建立一個 `packages` 資料夾，執行：
+`pip download -r requirements.txt -d ./packages`
+3. **搬移資料**：
+將整個專案資料夾（含 `packages`）透過隨身碟搬移至伺服器。
+
+---
+
+## 🚀 二、 伺服器安裝步驟
+
+1. **建立虛擬環境**：
+`python -m venv venv`
+2. **啟動環境**：
+`.\venv\Scripts\activate`
+3. **離線安裝套件**：
+`pip install --no-index --find-links=./packages -r requirements.txt`
+
+---
+
+## 🔑 三、 Oracle 19c 連線配置
+
+請修改 `config.py`，確保以下資訊與內網資料庫一致：
+
+* **DB_HOST**: 內網 IP（如 `192.168.x.x`）
+* **DB_PORT**: 預設 `1521`
+* **DB_SERVICE_NAME**: 服務名稱（或 SID）
+
+---
+
+## 🛠️ 四、 常見問題與解決方法 (Troubleshooting)
+
+### 1. 連線逾時 (Connection Timeout / DPY-4011)
+
+* **可能原因**：Windows Server 防火牆阻擋。
+* **解法**：在「具備進階安全性的 Windows 防火牆」中，新增「輸出規則」，允許存取 TCP Port 1521。
+
+### 2. ORA-12154: TNS:could not resolve the connect identifier
+
+* **可能原因**：`config.py` 中的 Service Name 寫錯。
+* **解法**：與 DBA 確認服務名稱，或在伺服器用 `tnsping [服務名]` 測試（若有安裝工具）。
+
+### 3. 編碼問題 (中文亂碼)
+
+* **可能原因**：Oracle 資料庫語系與 Python 讀取不一致。
+* **解法**：在 `db_manager.py` 初始化連線時，可嘗試加入 `encoding="UTF-8"` 或 `nencoding="UTF-8"`。
+
+### 4. 備份失敗 (Access Denied)
+
+* **可能原因**：工作排程器權限不足。
+* **解法**：在工作排程器設定中，勾選「不論使用者登入與否均執行」，並勾選「以最高權限執行」。
+
+---
+
+## 💾 五、 維護與備份說明
+
+* **日誌路徑**：`logs/app.log` (系統錯誤) 與 `logs/backup.log` (備份紀錄)。
+* **手動備份**：若需立即備份，可手動執行 `python backup_service.py`。
+* **Excel 匯出**：匯出功能依賴 `pandas` 與 `openpyxl`，請確保已安裝。
+
+---
+
+## 📝 六、 下一次開發階段預告 (TODO)
+
+1. **進階搜尋邏輯優化**：處理 `AND/OR` 的動態 SQL 拼接。
+2. **分頁功能**：若查詢結果超過 100 筆，實作前端分頁。
+3. **打包成 EXE**：使用 `PyInstaller` 進行綠色軟體化。
+
+---
+
+### 💡 如何使用這份文件？
+
+你可以隨時打開 Windsurf 閱讀這份 `DEPLOY_GUIDE.md`。如果你明天在伺服器上遇到任何報錯，請直接**複製錯誤碼 (例如 ORA-XXXXX)** 給我，我會針對你的內網環境給出精確的排障建議。
+
+----------
+明天你在內網修改的重點
+
+當 Cascade 生成代碼後，你只需要在 config.py 修改以下區塊，就能對接你的實體資料庫：
+
+Python
+# 明天你要改這裡：
+DB_USER = "YOUR_DB_ACCOUNT"
+DB_PASSWORD = "YOUR_DB_PASSWORD"
+DB_HOST = "192.168.x.x"  # 你的內網資料庫 IP
+DB_PORT = "1521"
+DB_SERVICE_NAME = "ORCL" # 或你的 SID
+
+---------
+
+第二階段：最完整的內網連線與修改步驟
+
+在內網環境中，您需要按照以下流程進行串接與部署：
+
+1. 離線套件準備 (在有網路的電腦操作)
+
+因為伺服器沒網，您必須先下載 whl 檔：
+
+在有網電腦建立一個資料夾，執行：
+pip download python-oracledb flask pandas openpyxl -d ./packages
+
+將 packages 資料夾與專案原始碼一起複製到內網伺服器。
+
+在伺服器上安裝：pip install --no-index --find-links=./packages -r requirements.txt
+
+2. 修改 config.py 中的連線資訊
+
+Windsurf 產出檔案後，請找到配置處並修改為您內網資料庫的實體資訊：
+
+Python
+# config.py
+DB_USER = "您的帳號"
+DB_PASSWORD = "您的密碼"
+# 格式通常為：IP:Port/ServiceName (例如 192.168.1.100:1521/orcl)
+DB_DSN = "192.168.x.x:1521/您的服務名稱" 
+3. 程式碼串接修改點
+
+在 app.py 中，您需要將原本模擬資料的地方改為呼叫 db_manager：
+
+匯入模組：from db_manager import execute_query
+
+改寫搜尋路由：
+
+Python
+# 將原本的模擬數據改為 SQL
+sql = f"SELECT * FROM your_table WHERE {target_column} LIKE :kw AND type IN ({placeholders})"
+results = execute_query(sql, {"kw": f"%{keyword}%", ...})
+4. Windows Server 2022 防火牆設定
+
+這是內網連線最常失敗的原因：
+
+確保伺服器的 輸出 (Outbound) 規則允許存取資料庫伺服器的 1521 埠（或您指定的 Oracle Port）。
+
+檢查資料庫端的 Listener 是否已將 Web 伺服器的 IP 加入白名單。
+
+5. 測試與驗證
+
+先執行一個簡單的 SELECT 1 FROM DUAL 測試。
+
+觀察 logs/app.log 是否出現連線超時（Timeout）或權限拒絕（Access Denied）的紀錄。
+
+
+---------
+
+這是一個非常關鍵的「前置作業」。在內網環境中，**免安裝版（Embedded Distribution）**的 Python 與標準版有些許不同，最大的挑戰在於它預設不包含 `pip`，且路徑配置較為封閉。
+
+我為你整理了在「聯網電腦」上進行準備的完整指令與注意事項：
+
+---
+
+### 🛠️ 聯網電腦：下載與打包步驟
+
+#### 1. 取得 Python 13 免安裝版
+
+* 前往 [Python 官網](https://www.python.org/downloads/windows/) 下載 `Windows embeddable package (64-bit)`。
+* 解壓縮至一個資料夾（例如 `C:\python_env`）。
+
+#### 2. 安裝 pip (使用 get-pip.py)
+
+下載 `get-pip.py` 後，將它放在 Python 解壓目錄下，執行：
+
+```powershell
+.\python.exe get-pip.py
+
+```
+
+#### 3. **重要：修改路徑檔 (._pth)**
+
+免安裝版預設會忽略網站套件（site-packages）。請在資料夾中找到 `python313._pth` 檔案，用記事本打開：
+
+* 找到 `#import site` 這一行，**去掉前面的 `#` 號**（變為 `import site`）。
+* 這樣 Python 才會去讀取你安裝的套件。
+
+#### 4. 下載所有套件（離線安裝包）
+
+在同一個資料夾建立一個 `packages` 目錄，然後執行以下指令下載 `.whl` 檔案：
+
+```powershell
+# 確保你的 requirements.txt 已經在該目錄
+.\python.exe -m pip download -r requirements.txt -d .\packages
+
+```
+
+---
+
+### 📄 你的 `requirements.txt` 應包含
+
+為了確保功能完整，請確認清單內有這些：
+
+```text
+flask
+python-oracledb
+pandas
+openpyxl
+
+```
+
+---
+
+### 🚀 搬移到「內網伺服器」後的安裝語法
+
+當你把整包資料（Python 目錄 + packages 目錄 + 程式碼）搬到 Windows Server 後，執行：
+
+```powershell
+# 1. 切換到 Python 目錄
+cd C:\你的路徑\python_env
+
+# 2. 離線安裝所有套件
+.\python.exe -m pip install --no-index --find-links=.\packages -r requirements.txt
+
+```
+
+---
+
+### ⚠️ 內網環境可能遇到的狀況 (Troubleshooting)
+
+| 狀況 | 解決方法 |
+| --- | --- |
+| **找不到 pip** | 檢查 `python313._pth` 檔案是否已將 `import site` 取消註解。 |
+| **SSL 憑證錯誤** | 在聯網電腦下載時若報錯，可加上 `--trusted-host pypi.org --trusted-host files.pythonhosted.org`。 |
+| **缺少 DLL** | 免安裝版有時缺少 C++ Runtime。建議從聯網電腦下載 `vc_redist.x64.exe` 一併帶入內網安裝。 |
+
+---
+
+
+
