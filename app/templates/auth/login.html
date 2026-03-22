@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登入系統 - Oracle 查詢系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft JhengHei', '微軟正黑體', Arial, sans-serif;
+            background: linear-gradient(135deg, #FFFFE0 0%, #FFF8DC 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            border: 2px solid #FFD700;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-header h1 {
+            color: #8B4513;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #FFD700;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .login-btn:hover {
+            background: linear-gradient(45deg, #FFA500, #FF8C00);
+            transform: translateY(-2px);
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .flash-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .flash-message.error {
+            background: #FFE4E1;
+            color: #DC143C;
+            border: 1px solid #FF6B6B;
+        }
+        
+        .flash-message.success {
+            background: #E8F5E8;
+            color: #2E7D32;
+            border: 1px solid #4CAF50;
+        }
+        
+        .flash-message.warning {
+            background: #FFF3E0;
+            color: #F57C00;
+            border: 1px solid #FF9800;
+        }
+        
+        .flash-message.info {
+            background: #E3F2FD;
+            color: #1565C0;
+            border: 1px solid #2196F3;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .system-info {
+            background: #FFF8DC;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px solid #FFD700;
+        }
+        
+        .system-info h3 {
+            color: #8B4513;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .system-info ul {
+            list-style: none;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .system-info li {
+            margin-bottom: 5px;
+        }
+        
+        .system-info li:before {
+            content: "✓ ";
+            color: #FFD700;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>🔐 登入系統</h1>
+            <p>Oracle 19c 查詢系統</p>
+        </div>
+        
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            <div class="form-group">
+                <label for="username">帳號：</label>
+                <input type="text" id="username" name="username" required 
+                       placeholder="請輸入您的帳號" autocomplete="username">
+            </div>
+            
+            <button type="submit" class="login-btn">
+                登入系統
+            </button>
+        </form>
+        
+        <div class="system-info">
+            <h3>📋 系統資訊</h3>
+            <ul>
+                <li>測試期：僅需輸入帳號即可登入</li>
+                <li>Session 時間：30 分鐘自動過期</li>
+                <li>管理員帳號：admin, administrator, root</li>
+                <li>資料庫：Oracle 19c Thin Mode</li>
+            </ul>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; 2026 Oracle 查詢系統 - 版本 1.0.0</p>
+        </div>
+    </div>
+    
+    <script>
+        // 自動聚焦到帳號輸入框
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('username').focus();
+        });
+        
+        // 表單提交驗證
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const username = document.getElementById('username').value.trim();
+            
+            if (!username) {
+                e.preventDefault();
+                alert('請輸入帳號');
+                return false;
+            }
+            
+            if (username.length < 2) {
+                e.preventDefault();
+                alert('帳號長度至少需要 2 個字元');
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

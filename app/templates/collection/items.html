@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>專題館項目管理 - Oracle 查詢系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft JhengHei', '微軟正黑體', Arial, sans-serif;
+            background: linear-gradient(135deg, #FFFFE0 0%, #FFF8DC 100%);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #333;
+        }
+        
+        .user-info .username {
+            font-weight: bold;
+        }
+        
+        .user-info .logout {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #333;
+            transition: background 0.3s;
+        }
+        
+        .user-info .logout:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .flash-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .flash-message.success {
+            background: #E8F5E8;
+            color: #2E7D32;
+            border: 1px solid #4CAF50;
+        }
+        
+        .flash-message.error {
+            background: #FFE4E1;
+            color: #DC143C;
+            border: 1px solid #FF6B6B;
+        }
+        
+        .flash-message.warning {
+            background: #FFF3E0;
+            color: #F57C00;
+            border: 1px solid #FF9800;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-header h2 {
+            color: #8B4513;
+            font-size: 20px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #FFA500, #FF8C00);
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        .collection-info {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: 2px solid #FFD700;
+        }
+        
+        .collection-info h3 {
+            color: #8B4513;
+            margin-bottom: 10px;
+        }
+        
+        .collection-info p {
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .manual-add-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: 2px solid #FFD700;
+        }
+        
+        .manual-add-form {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        
+        .form-group {
+            flex: 1;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #FFD700;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 2px solid #FFD700;
+        }
+        
+        .items-table th {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+            border-bottom: 2px solid #FFA500;
+        }
+        
+        .items-table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            vertical-align: top;
+        }
+        
+        .items-table tr:hover {
+            background: #FFF8DC;
+        }
+        
+        .add-type-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .add-type-auto {
+            background: #E8F5E8;
+            color: #2E7D32;
+        }
+        
+        .add-type-manual {
+            background: #FFF3E0;
+            color: #F57C00;
+        }
+        
+        .status-active {
+            color: #2E7D32;
+            font-weight: bold;
+        }
+        
+        .status-inactive {
+            color: #DC143C;
+            text-decoration: line-through;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .notes-text {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .stats-summary {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid #FFD700;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #8B4513;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .manual-add-form {
+                flex-direction: column;
+            }
+            
+            .form-group {
+                width: 100%;
+            }
+            
+            .items-table {
+                font-size: 12px;
+            }
+            
+            .items-table th,
+            .items-table td {
+                padding: 8px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 2px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>📋 專題館項目管理</h1>
+            <div class="user-info">
+                <span class="username">👤 {{ current_user }}</span>
+                <a href="{{ url_for('collection.admin') }}" class="logout">🔙 回管理</a>
+                <a href="{{ url_for('search.index') }}" class="logout">🏠 回首頁</a>
+                <a href="{{ url_for('auth.logout') }}" class="logout">🚪 登出</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        
+        <div class="collection-info">
+            <h3>📊 {{ config.COLLECTION_NAME }}</h3>
+            <p><strong>專題館 ID：</strong>{{ config.COLLECTION_ID }}</p>
+            <p><strong>描述：</strong>{{ config.DESCRIPTION or '-' }}</p>
+            <p><strong>SQL 條件：</strong>{{ config.SQL_FILTER_CONDITION or '-' }}</p>
+        </div>
+        
+        <div class="stats-summary">
+            <div class="stat-card">
+                <div class="stat-number">{{ items | length }}</div>
+                <div class="stat-label">總項目數</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ items | selectattr('IS_ACTIVE', 'equalto', 'Y') | list | length }}</div>
+                <div class="stat-label">啟用項目</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ items | selectattr('ADD_TYPE', 'equalto', 'AUTO') | list | length }}</div>
+                <div class="stat-label">自動新增</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ items | selectattr('ADD_TYPE', 'equalto', 'MANUAL') | list | length }}</div>
+                <div class="stat-label">手動新增</div>
+            </div>
+        </div>
+        
+        <div class="manual-add-section">
+            <div class="section-header">
+                <h2>✋ 手動新增項目</h2>
+            </div>
+            
+            <form class="manual-add-form" id="manualAddForm">
+                <input type="hidden" id="collectionId" value="{{ config.COLLECTION_ID }}">
+                
+                <div class="form-group">
+                    <label for="ovcRpNo">報告編號 <span style="color: red;">*</span></label>
+                    <input type="text" id="ovcRpNo" placeholder="請輸入報告編號" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="notes">備註</label>
+                    <input type="text" id="notes" placeholder="可選的備註說明">
+                </div>
+                
+                <button type="submit" class="btn btn-success">➕ 新增項目</button>
+            </form>
+        </div>
+        
+        <div class="section-header">
+            <h2>📋 項目列表</h2>
+            <div class="btn-group">
+                {% if config.AUTO_UPDATE == 'Y' %}
+                    <button class="btn btn-warning" onclick="updateNow()">🔄 立即更新</button>
+                {% endif %}
+                <a href="{{ url_for('collection.view_collection', collection_id=config.COLLECTION_ID) }}" 
+                   class="btn btn-primary" target="_blank">👀 前台檢視</a>
+            </div>
+        </div>
+        
+        {% if items %}
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>報告編號</th>
+                    <th>加入類型</th>
+                    <th>加入時間</th>
+                    <th>加入者</th>
+                    <th>狀態</th>
+                    <th>備註</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('search.detail', doc_id=item.OVC_RP_NO) }}" 
+                           target="_blank" style="color: #007bff; text-decoration: none;">
+                            {{ item.OVC_RP_NO }}
+                        </a>
+                    </td>
+                    <td>
+                        <span class="add-type-badge add-type-{{ item.ADD_TYPE.lower() }}">
+                            {% if item.ADD_TYPE == 'AUTO' %}
+                                🤖 自動
+                            {% else %}
+                                ✋ 手動
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        {% if item.ADDED_DATE %}
+                            {{ item.ADDED_DATE.strftime('%Y-%m-%d %H:%M') }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ item.ADDED_BY or '-' }}</td>
+                    <td>
+                        {% if item.IS_ACTIVE == 'Y' %}
+                            <span class="status-active">✅ 啟用</span>
+                        {% else %}
+                            <span class="status-inactive">❌ 停用</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="notes-text" title="{{ item.NOTES or '' }}">
+                            {{ item.NOTES or '-' }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            {% if item.IS_ACTIVE == 'Y' %}
+                                <button class="btn btn-sm btn-danger" 
+                                        onclick="removeItem('{{ item.OVC_RP_NO }}')">🗑️</button>
+                            {% else %}
+                                <button class="btn btn-sm btn-success" 
+                                        onclick="restoreItem('{{ item.OVC_RP_NO }}')">↩️</button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <h3>📭 尚無任何項目</h3>
+            <p>您可以透過手動新增或自動更新來添加項目</p>
+            {% if config.AUTO_UPDATE == 'Y' %}
+                <button class="btn btn-warning" onclick="updateNow()">🔄 立即更新</button>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    
+    <script>
+        // 手動新增項目
+        document.getElementById('manualAddForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const collectionId = document.getElementById('collectionId').value;
+            const ovcRpNo = document.getElementById('ovcRpNo').value.trim();
+            const notes = document.getElementById('notes').value.trim();
+            
+            if (!ovcRpNo) {
+                alert('請輸入報告編號');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('collection_id', collectionId);
+            formData.append('ovc_rp_no', ovcRpNo);
+            formData.append('notes', notes);
+            
+            fetch('{{ url_for("collection.add_item") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('項目新增成功');
+                    location.reload();
+                } else {
+                    alert('新增失敗：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('新增失敗:', error);
+                alert('新增失敗，請稍後再試');
+            });
+        });
+        
+        // 移除項目
+        function removeItem(ovcRpNo) {
+            if (!confirm('確定要移除這個項目嗎？')) {
+                return;
+            }
+            
+            const collectionId = document.getElementById('collectionId').value;
+            
+            const formData = new FormData();
+            formData.append('collection_id', collectionId);
+            formData.append('ovc_rp_no', ovcRpNo);
+            
+            fetch('{{ url_for("collection.remove_item") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('項目移除成功');
+                    location.reload();
+                } else {
+                    alert('移除失敗：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('移除失敗:', error);
+                alert('移除失敗，請稍後再試');
+            });
+        }
+        
+        // 立即更新
+        function updateNow() {
+            if (!confirm('確定要立即更新專題館嗎？這將根據 SQL 條件重新整理所有項目。')) {
+                return;
+            }
+            
+            const collectionId = document.getElementById('collectionId').value;
+            
+            const formData = new FormData();
+            formData.append('collection_id', collectionId);
+            
+            fetch('{{ url_for("collection.update_now") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('更新成功：' + data.message);
+                    location.reload();
+                } else {
+                    alert('更新失敗：' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('更新失敗:', error);
+                alert('更新失敗，請稍後再試');
+            });
+        }
+    </script>
+</body>
+</html>

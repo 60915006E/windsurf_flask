@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ portal_link.TITLE or '動態頁面' }} - Oracle 查詢系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft JhengHei', '微軟正黑體', Arial, sans-serif;
+            background: linear-gradient(135deg, #FFFFE0 0%, #FFF8DC 100%);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .header-icon {
+            font-size: 28px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #333;
+        }
+        
+        .user-info .username {
+            font-weight: bold;
+        }
+        
+        .user-info .logout {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #333;
+            transition: background 0.3s;
+        }
+        
+        .user-info .logout:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        
+        .page-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            border: 2px solid #FFD700;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #FFD700;
+        }
+        
+        .page-title {
+            color: #8B4513;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .page-description {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        
+        .page-content {
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .page-content h1,
+        .page-content h2,
+        .page-content h3,
+        .page-content h4,
+        .page-content h5,
+        .page-content h6 {
+            color: #8B4513;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .page-content h1 { font-size: 24px; }
+        .page-content h2 { font-size: 22px; }
+        .page-content h3 { font-size: 20px; }
+        .page-content h4 { font-size: 18px; }
+        .page-content h5 { font-size: 16px; }
+        .page-content h6 { font-size: 14px; }
+        
+        .page-content p {
+            margin-bottom: 15px;
+        }
+        
+        .page-content ul,
+        .page-content ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .page-content li {
+            margin-bottom: 5px;
+        }
+        
+        .page-content a {
+            color: #FF8C00;
+            text-decoration: none;
+        }
+        
+        .page-content a:hover {
+            text-decoration: underline;
+        }
+        
+        .page-content blockquote {
+            border-left: 4px solid #FFD700;
+            padding-left: 15px;
+            margin: 15px 0;
+            font-style: italic;
+            color: #666;
+        }
+        
+        .page-content code {
+            background: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        
+        .page-content pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        .page-content pre code {
+            background: none;
+            padding: 0;
+        }
+        
+        .page-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        .page-content th,
+        .page-content td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .page-content th {
+            background: #FFF8DC;
+            color: #8B4513;
+            font-weight: bold;
+        }
+        
+        .page-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #FFA500, #FF8C00);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .flash-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .flash-message.success {
+            background: #E8F5E8;
+            color: #2E7D32;
+            border: 1px solid #4CAF50;
+        }
+        
+        .flash-message.error {
+            background: #FFE4E1;
+            color: #DC143C;
+            border: 1px solid #FF6B6B;
+        }
+        
+        .no-content {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .breadcrumb a {
+            color: #FF8C00;
+            text-decoration: none;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>
+                <span class="header-icon">{{ portal_link.ICON or '📄' }}</span>
+                {{ portal_link.TITLE or '動態頁面' }}
+            </h1>
+            <div class="user-info">
+                <span class="username">👤 {{ current_user }}</span>
+                <a href="{{ url_for('auth.logout') }}" class="logout">🚪 登出</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        
+        <div class="breadcrumb">
+            <a href="{{ url_for('search.index') }}">🏠 首頁</a>
+            <span>›</span>
+            <span>{{ portal_link.TITLE or '動態頁面' }}</span>
+        </div>
+        
+        <div class="page-section">
+            <div class="page-header">
+                <div>
+                    <h2 class="page-title">{{ portal_link.TITLE or '動態頁面' }}</h2>
+                    {% if portal_link.DESCRIPTION %}
+                    <div class="page-description">{{ portal_link.DESCRIPTION }}</div>
+                    {% endif %}
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="goBack()">🔙 返回首頁</button>
+                </div>
+            </div>
+            
+            <div class="page-content">
+                {% if portal_link.CONTENT_HTML %}
+                    {{ portal_link.CONTENT_HTML | safe }}
+                {% else %}
+                    <div class="no-content">
+                        📝 此頁面暫無內容，請聯繫管理員新增內容。
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function goBack() {
+            window.location.href = '{{ url_for("search.index") }}';
+        }
+        
+        // 頁面載入時的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 可以在這裡添加一些初始化邏輯
+            console.log('動態頁面載入完成: {{ portal_link.TITLE or "未命名頁面" }}');
+        });
+    </script>
+</body>
+</html>

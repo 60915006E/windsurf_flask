@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>進階搜尋 - Oracle 查詢系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft JhengHei', '微軟正黑體', Arial, sans-serif;
+            background: linear-gradient(135deg, #FFFFE0 0%, #FFF8DC 100%);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #333;
+        }
+        
+        .user-info .username {
+            font-weight: bold;
+        }
+        
+        .user-info .logout {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #333;
+            transition: background 0.3s;
+        }
+        
+        .user-info .logout:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        
+        .search-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            border: 2px solid #FFD700;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-header h2 {
+            color: #8B4513;
+            font-size: 24px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #FFA500, #FF8C00);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #FFD700;
+        }
+        
+        .conditions-container {
+            margin-bottom: 20px;
+        }
+        
+        .condition-item {
+            background: #FFF8DC;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #FFD700;
+        }
+        
+        .condition-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .condition-title {
+            font-weight: bold;
+            color: #8B4513;
+        }
+        
+        .remove-condition {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .remove-condition:hover {
+            background: #c82333;
+        }
+        
+        .condition-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .flash-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .flash-message.success {
+            background: #E8F5E8;
+            color: #2E7D32;
+            border: 1px solid #4CAF50;
+        }
+        
+        .flash-message.error {
+            background: #FFE4E1;
+            color: #DC143C;
+            border: 1px solid #FF6B6B;
+        }
+        
+        .flash-message.warning {
+            background: #FFF3E0;
+            color: #F57C00;
+            border: 1px solid #FF9800;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #FFD700;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .results-preview {
+            background: #FFF8DC;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px solid #FFD700;
+        }
+        
+        .sql-preview {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>🔍 進階搜尋</h1>
+            <div class="user-info">
+                <span class="username">👤 {{ current_user }}</span>
+                <a href="{{ url_for('auth.logout') }}" class="logout">🚪 登出</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        
+        <div class="search-section">
+            <div class="section-header">
+                <h2>📊 進階搜尋設定</h2>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="addCondition()">➕ 新增條件</button>
+                    <button class="btn btn-secondary" onclick="clearAllConditions()">🗑️ 清除所有</button>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="dateFrom">發布日期（起）：</label>
+                    <input type="date" id="dateFrom" name="dateFrom">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dateTo">發布日期（迄）：</label>
+                    <input type="date" id="dateTo" name="dateTo">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="keyword">關鍵字：</label>
+                    <input type="text" id="keyword" name="keyword" placeholder="搜尋標題或摘要...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="category">分類：</label>
+                    <select id="category" name="category">
+                        <option value="">-- 全部分類 --</option>
+                        <option value="研究報告">研究報告</option>
+                        <option value="技術報告">技術報告</option>
+                        <option value="專案報告">專案報告</option>
+                        <option value="年度報告">年度報告</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="csiName">報告主號：</label>
+                    <input type="text" id="csiName" name="csiName" placeholder="輸入報告主號...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="author">主要作者：</label>
+                    <input type="text" id="author" name="author" placeholder="輸入作者姓名...">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="securityLevel">機密等級：</label>
+                    <select id="securityLevel" name="securityLevel">
+                        <option value="">-- 全部等級 --</option>
+                        <option value="公開">公開</option>
+                        <option value="內部">內部</option>
+                        <option value="機密">機密</option>
+                        <option value="極機密">極機密</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="trainType">受訓類型：</label>
+                    <select id="trainType" name="trainType">
+                        <option value="">-- 全部類型 --</option>
+                        <option value="技術培訓">技術培訓</option>
+                        <option value="管理培訓">管理培訓</option>
+                        <option value="專業培訓">專業培訓</option>
+                        <option value="安全培訓">安全培訓</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="conditions-container" id="conditionsContainer">
+                <!-- 條件項目將動態加入 -->
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="previewSQL()">👁️ 預覽 SQL</button>
+                <button class="btn btn-primary" onclick="executeSearch()">🔍 執行搜尋</button>
+            </div>
+            
+            <div class="results-preview" id="resultsPreview" style="display: none;">
+                <h3>📝 生成的 SQL 查詢</h3>
+                <div class="sql-preview" id="sqlPreview"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let conditionCount = 0;
+        let availableColumns = [];
+        
+        // 新增條件
+        function addCondition() {
+            conditionCount++;
+            const container = document.getElementById('conditionsContainer');
+            
+            const conditionDiv = document.createElement('div');
+            conditionDiv.className = 'condition-item';
+            conditionDiv.id = `condition-${conditionCount}`;
+            
+            conditionDiv.innerHTML = `
+                <div class="condition-header">
+                    <span class="condition-title">條件 ${conditionCount}</span>
+                    <button class="remove-condition" onclick="removeCondition(${conditionCount})">❌ 移除</button>
+                </div>
+                <div class="condition-fields">
+                    <div class="form-group">
+                        <label>欄位：</label>
+                        <select name="field" id="field-${conditionCount}">
+                            <option value="">請選擇欄位</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>運算子：</label>
+                        <select name="operator" id="operator-${conditionCount}" onchange="updateOperator(${conditionCount})">
+                            <option value="包含">包含</option>
+                            <option value="等於">等於</option>
+                            <option value="開頭為">開頭為</option>
+                            <option value="大於">大於</option>
+                            <option value="小於">小於</option>
+                            <option value="大於等於">大於等於</option>
+                            <option value="小於等於">小於等於</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>連接符：</label>
+                        <select name="connector" id="connector-${conditionCount}">
+                            <option value="AND">AND</option>
+                            <option value="OR">OR</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>數值：</label>
+                        <input type="text" name="value" id="value-${conditionCount}" placeholder="請輸入搜尋數值">
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(conditionDiv);
+        }
+        
+        // 移除條件
+        function removeCondition(id) {
+            const condition = document.getElementById(`condition-${id}`);
+            if (condition) {
+                condition.remove();
+            }
+        }
+        
+        // 清除所有條件
+        function clearAllConditions() {
+            document.getElementById('conditionsContainer').innerHTML = '';
+            document.getElementById('resultsPreview').style.display = 'none';
+            conditionCount = 0;
+        }
+        
+        // 載入表格欄位
+        function loadTableColumns() {
+            const tableName = document.getElementById('tableName').value;
+            const columnsSelect = document.getElementById('selectedColumns');
+            
+            if (!tableName) {
+                columnsSelect.innerHTML = '<option value="">請先選擇表格</option>';
+                availableColumns = [];
+                return;
+            }
+            
+            // 模擬表格欄位（實際應該從資料庫取得）
+            const tableColumns = {
+                'EMPLOYEES': ['EMP_ID', 'EMP_NAME', 'DEPARTMENT', 'SALARY', 'HIRE_DATE', 'EMAIL'],
+                'DEPARTMENTS': ['DEPT_ID', 'DEPT_NAME', 'MANAGER', 'LOCATION', 'BUDGET'],
+                'PROJECTS': ['PROJECT_ID', 'PROJECT_NAME', 'START_DATE', 'END_DATE', 'STATUS', 'BUDGET']
+            };
+            
+            availableColumns = tableColumns[tableName] || [];
+            
+            // 更新欄位選項
+            columnsSelect.innerHTML = '<option value="">-- 全部欄位 --</option>';
+            availableColumns.forEach(column => {
+                columnsSelect.innerHTML += `<option value="${column}">${column}</option>`;
+            });
+            
+            // 更新條件中的欄位選項
+            for (let i = 1; i <= conditionCount; i++) {
+                const fieldSelect = document.getElementById(`field-${i}`);
+                if (fieldSelect) {
+                    const currentValue = fieldSelect.value;
+                    fieldSelect.innerHTML = '<option value="">請選擇欄位</option>';
+                    availableColumns.forEach(column => {
+                        fieldSelect.innerHTML += `<option value="${column}" ${column === currentValue ? 'selected' : ''}>${column}</option>`;
+                    });
+                }
+            }
+        }
+        
+        // 更新運算子（處理開頭為的特殊情況）
+        function updateOperator(id) {
+            const operatorSelect = document.getElementById(`operator-${id}`);
+            const valueInput = document.getElementById(`value-${id}`);
+            
+            if (operatorSelect.value === '開頭為') {
+                valueInput.placeholder = '請輸入開頭文字';
+            } else {
+                valueInput.placeholder = '請輸入搜尋數值';
+            }
+        }
+        
+        // 預覽 SQL
+        function previewSQL() {
+            const conditions = collectConditions();
+            if (conditions.length === 0) {
+                alert('請至少新增一個搜尋條件');
+                return;
+            }
+            
+            const sql = generateSQL(conditions);
+            document.getElementById('sqlPreview').textContent = sql;
+            document.getElementById('resultsPreview').style.display = 'block';
+        }
+        
+        // 收集條件
+        function collectConditions() {
+            const conditions = [];
+            
+            for (let i = 1; i <= conditionCount; i++) {
+                const field = document.getElementById(`field-${i}`);
+                const operator = document.getElementById(`operator-${i}`);
+                const value = document.getElementById(`value-${i}`);
+                const connector = document.getElementById(`connector-${i}`);
+                
+                if (field && field.value && operator && operator.value && value && value.value) {
+                    conditions.push({
+                        field: field.value,
+                        operator: operator.value,
+                        value: value.value,
+                        connector: connector ? connector.value : 'AND'
+                    });
+                }
+            }
+            
+            return conditions;
+        }
+        
+        // 生成 SQL
+        function generateSQL(conditions) {
+            const tableName = document.getElementById('tableName').value;
+            const globalLogic = document.getElementById('globalLogic').value;
+            const selectedColumns = Array.from(document.getElementById('selectedColumns').selectedOptions)
+                .map(option => option.value)
+                .filter(value => value);
+            
+            const columnClause = selectedColumns.length > 0 ? selectedColumns.join(', ') : '*';
+            
+            if (conditions.length === 0) {
+                return `SELECT ${columnClause} FROM ${tableName}`;
+            }
+            
+            const whereClauses = conditions.map((condition, index) => {
+                let sqlOperator;
+                switch (condition.operator) {
+                    case '包含':
+                    case '開頭為':
+                        sqlOperator = 'LIKE';
+                        break;
+                    case '等於':
+                        sqlOperator = '=';
+                        break;
+                    case '大於':
+                        sqlOperator = '>';
+                        break;
+                    case '小於':
+                        sqlOperator = '<';
+                        break;
+                    case '大於等於':
+                        sqlOperator = '>=';
+                        break;
+                    case '小於等於':
+                        sqlOperator = '<=';
+                        break;
+                    default:
+                        sqlOperator = '=';
+                }
+                
+                const paramValue = (condition.operator === '包含' || condition.operator === '開頭為') 
+                    ? `'${condition.value.replace(/'/g, "''")}'` 
+                    : `'${condition.value}'`;
+                
+                return `${condition.field} ${sqlOperator} ${paramValue}`;
+            });
+            
+            const whereSQL = whereClauses.join(` ${globalLogic} `);
+            
+            return `SELECT ${columnClause} FROM ${tableName} WHERE ${whereSQL}`;
+        }
+        
+        // 執行搜尋
+        function executeSearch() {
+            // 收集表單資料
+            const searchData = {
+                dateFrom: document.getElementById('dateFrom').value,
+                dateTo: document.getElementById('dateTo').value,
+                keyword: document.getElementById('keyword').value,
+                category: document.getElementById('category').value,
+                csiName: document.getElementById('csiName').value,
+                author: document.getElementById('author').value,
+                securityLevel: document.getElementById('securityLevel').value,
+                trainType: document.getElementById('trainType').value
+            };
+            
+            // 檢查是否至少有一個搜尋條件
+            const hasCondition = Object.values(searchData).some(value => value !== '');
+            if (!hasCondition) {
+                alert('請至少輸入一個搜尋條件');
+                return;
+            }
+            
+            // 顯示載入狀態
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '搜尋中...';
+            btn.disabled = true;
+            
+            // 將搜尋條件轉換為 URL 參數
+            const params = new URLSearchParams();
+            Object.entries(searchData).forEach(([key, value]) => {
+                if (value) {
+                    params.append(key, value);
+                }
+            });
+            
+            // 跳轉到結果頁面
+            window.location.href = `{{ url_for('search.results') }}?${params.toString()}`;
+        }
+        
+        // 頁面載入時初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 設定日期預設值（最近一個月）
+            const today = new Date();
+            const oneMonthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+            
+            document.getElementById('dateTo').valueAsDate = today;
+            document.getElementById('dateFrom').valueAsDate = oneMonthAgo;
+        });
+        
+        // 快速搜尋（按 Enter 鍵）
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                executeSearch();
+            }
+        });
+    </script>
+</body>
+</html>

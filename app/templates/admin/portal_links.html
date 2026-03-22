@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6 格按鈕管理 - Oracle 查詢系統後台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft JhengHei', '微軟正黑體', Arial, sans-serif;
+            background: linear-gradient(135deg, #FFFFE0 0%, #FFF8DC 100%);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #333;
+        }
+        
+        .user-info .username {
+            font-weight: bold;
+        }
+        
+        .user-info .logout {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #333;
+            transition: background 0.3s;
+        }
+        
+        .user-info .logout:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        
+        .portal-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            border: 2px solid #FFD700;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .section-header h2 {
+            color: #8B4513;
+            font-size: 24px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #FFA500, #FF8C00);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        
+        .portal-card {
+            background: #FFF8DC;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #FFD700;
+            transition: all 0.3s;
+        }
+        
+        .portal-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 165, 0, 0.2);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #FFD700;
+        }
+        
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #8B4513;
+        }
+        
+        .card-icon {
+            font-size: 24px;
+        }
+        
+        .card-id {
+            background: #FFD700;
+            color: #333;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            color: #8B4513;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #FFD700;
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .form-group .html-editor {
+            min-height: 200px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            transform: scale(1.2);
+        }
+        
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #FFD700;
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .flash-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .flash-message.success {
+            background: #E8F5E8;
+            color: #2E7D32;
+            border: 1px solid #4CAF50;
+        }
+        
+        .flash-message.error {
+            background: #FFE4E1;
+            color: #DC143C;
+            border: 1px solid #FF6B6B;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #FFD700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .preview-section {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .preview-title {
+            font-weight: bold;
+            color: #8B4513;
+            margin-bottom: 10px;
+        }
+        
+        .preview-content {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 3px;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>🎛️ 6 格按鈕管理</h1>
+            <div class="user-info">
+                <span class="username">👤 {{ current_user }}</span>
+                <a href="{{ url_for('auth.logout') }}" class="logout">🚪 登出</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        
+        <div class="portal-section">
+            <div class="section-header">
+                <h2>📱 入口連結設定</h2>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="saveAllLinks()">💾 儲存全部</button>
+                    <button class="btn btn-secondary" onclick="goBack()">🔙 返回後台</button>
+                </div>
+            </div>
+            
+            <div class="portal-grid">
+                {% for link in portal_links %}
+                <div class="portal-card" id="card-{{ link.ID }}">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span class="card-icon">{{ link.ICON or '🔗' }}</span>
+                            <span>按鈕 {{ link.ID }}</span>
+                        </div>
+                        <span class="card-id">ID: {{ link.ID }}</span>
+                    </div>
+                    
+                    <form id="form-{{ link.ID }}" class="link-form">
+                        <div class="form-group">
+                            <label for="title-{{ link.ID }}">標題 *</label>
+                            <input type="text" id="title-{{ link.ID }}" name="title" 
+                                   value="{{ link.TITLE or '' }}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="icon-{{ link.ID }}">圖示</label>
+                            <input type="text" id="icon-{{ link.ID }}" name="icon" 
+                                   value="{{ link.ICON or '' }}" placeholder="例如：🔍, 📊, 📁">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="url-{{ link.ID }}">連結 URL</label>
+                            <input type="text" id="url-{{ link.ID }}" name="url" 
+                                   value="{{ link.URL or '' }}" placeholder="例如：/portal/page/{{ link.ID }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="description-{{ link.ID }}">描述</label>
+                            <input type="text" id="description-{{ link.ID }}" name="description" 
+                                   value="{{ link.DESCRIPTION or '' }}" placeholder="簡短描述">
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="visible-{{ link.ID }}" name="is_visible" 
+                                       value="Y" {% if link.IS_VISIBLE == 'Y' %}checked{% endif %}>
+                                <label for="visible-{{ link.ID }}">顯示此按鈕</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="content-{{ link.ID }}">HTML 內容</label>
+                            <textarea id="content-{{ link.ID }}" name="content_html" 
+                                      class="html-editor" placeholder="輸入 HTML 格式的內容...">{{ link.CONTENT_HTML or '' }}</textarea>
+                        </div>
+                        
+                        <div class="preview-section">
+                            <div class="preview-title">📋 內容預覽</div>
+                            <div class="preview-content" id="preview-{{ link.ID }}">
+                                {% if link.CONTENT_HTML %}
+                                    {{ link.CONTENT_HTML | safe }}
+                                {% else %}
+                                    <em>暫無內容</em>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" onclick="previewContent({{ link.ID }})">👁️ 預覽</button>
+                            <button type="button" class="btn btn-success" onclick="saveLink({{ link.ID }})">💾 儲存</button>
+                        </div>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <span>儲存中，請稍候...</span>
+        </div>
+    </div>
+    
+    <script>
+        function saveLink(linkId) {
+            const form = document.getElementById(`form-${linkId}`);
+            const formData = new FormData(form);
+            
+            // 處理 checkbox
+            const checkbox = document.getElementById(`visible-${linkId}`);
+            formData.set('is_visible', checkbox.checked ? 'Y' : 'N');
+            
+            showLoading(true);
+            
+            fetch(`/admin/api/portal_links/${linkId}`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                showLoading(false);
+                if (data.success) {
+                    showMessage('success', data.message);
+                } else {
+                    showMessage('error', data.message);
+                }
+            })
+            .catch(error => {
+                showLoading(false);
+                showMessage('error', '儲存失敗：' + error.message);
+            });
+        }
+        
+        function saveAllLinks() {
+            const linkIds = [1, 2, 3, 4, 5, 6];
+            const promises = [];
+            
+            linkIds.forEach(linkId => {
+                promises.push(saveLink(linkId));
+            });
+            
+            Promise.all(promises).then(() => {
+                showMessage('success', '所有按鈕已儲存');
+            });
+        }
+        
+        function previewContent(linkId) {
+            const content = document.getElementById(`content-${linkId}`).value;
+            const preview = document.getElementById(`preview-${linkId}`);
+            
+            if (content.trim()) {
+                preview.innerHTML = content;
+            } else {
+                preview.innerHTML = '<em>暫無內容</em>';
+            }
+        }
+        
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            loading.style.display = show ? 'block' : 'none';
+        }
+        
+        function showMessage(type, message) {
+            // 移除現有的訊息
+            const existingMessages = document.querySelectorAll('.flash-message');
+            existingMessages.forEach(msg => msg.remove());
+            
+            // 建立新訊息
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flash-message ${type}`;
+            messageDiv.textContent = message;
+            
+            // 插入到容器開頭
+            const container = document.querySelector('.container');
+            container.insertBefore(messageDiv, container.firstChild);
+            
+            // 3 秒後自動移除
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+        
+        function goBack() {
+            window.location.href = '{{ url_for("admin.dashboard") }}';
+        }
+        
+        // 即時預覽功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 定義連結 ID 陣列
+            const linkIds = [1, 2, 3, 4, 5, 6];
+            
+            linkIds.forEach(linkId => {
+                const contentTextarea = document.getElementById(`content-${linkId}`);
+                const preview = document.getElementById(`preview-${linkId}`);
+                
+                if (contentTextarea && preview) {
+                    contentTextarea.addEventListener('input', function() {
+                        if (this.value.trim()) {
+                            preview.innerHTML = this.value;
+                        } else {
+                            preview.innerHTML = '<em>暫無內容</em>';
+                        }
+                    });
+                }
+            });
+            
+            console.log('6 格按鈕管理頁面載入完成');
+        });
+    </script>
+</body>
+</html>

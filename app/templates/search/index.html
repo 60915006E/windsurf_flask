@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oracle 查詢系統 - 主畫面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft JhengHei', '微軟正黑體', Arial, sans-serif;
+            background: linear-gradient(135deg, #FFFFE0 0%, #FFF8DC 100%);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #333;
+        }
+        
+        .user-info .username {
+            font-weight: bold;
+        }
+        
+        .user-info .logout {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #333;
+            transition: background 0.3s;
+        }
+        
+        .user-info .logout:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+        
+        .query-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            border: 2px solid #FFD700;
+        }
+        
+        .query-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .query-header h2 {
+            color: #8B4513;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 150px;
+        }
+        
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #FFD700;
+        }
+        
+        /* 搜尋輸入框樣式 */
+        .search-input-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #FFD700;
+            box-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+        }
+        
+        .search-btn {
+            padding: 12px 20px;
+            white-space: nowrap;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #FFA500, #FF8C00);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .links-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            border: 2px solid #FFD700;
+        }
+        
+        .links-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .links-header h2 {
+            color: #8B4513;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 15px;
+            height: 100%;
+        }
+        
+        .link-btn {
+            padding: 20px;
+            border: 2px solid #FFA500;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            text-decoration: none;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100px;
+        }
+        
+        .link-btn:hover {
+            background: #FFA500;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 165, 0, 0.3);
+        }
+        
+        .link-btn .icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .link-btn .name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .link-btn .description {
+            font-size: 12px;
+            opacity: 0.8;
+            line-height: 1.3;
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .flash-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .flash-message.error {
+            background: #FFE4E1;
+            color: #DC143C;
+            border: 1px solid #FF6B6B;
+        }
+        
+        .flash-message.success {
+            background: #E8F5E8;
+            color: #2E7D32;
+            border: 1px solid #4CAF50;
+        }
+        
+        .flash-message.warning {
+            background: #FFF3E0;
+            color: #F57C00;
+            border: 1px solid #FF9800;
+        }
+        
+        .flash-message.info {
+            background: #E3F2FD;
+            color: #1565C0;
+            border: 1px solid #2196F3;
+        }
+        
+        .status-bar {
+            background: #FFF8DC;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #FFD700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+        
+        .status-indicator.connected {
+            background: #4CAF50;
+        }
+        
+        .status-indicator.disconnected {
+            background: #f44336;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #FFD700;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .links-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* 熱門推薦區塊樣式 */
+        .popular-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: 2px solid #FFD700;
+        }
+        
+        .popular-header {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #FFD700;
+        }
+        
+        .popular-header h2 {
+            color: #8B4513;
+            font-size: 18px;
+            margin: 0;
+        }
+        
+        .popular-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .popular-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #FFF8DC;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .popular-item:hover {
+            background: #FFE4B5;
+            transform: translateX(5px);
+        }
+        
+        .popular-rank {
+            width: 30px;
+            height: 30px;
+            background: #FFD700;
+            color: #333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .popular-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .popular-title {
+            font-weight: bold;
+            color: #8B4513;
+            font-size: 14px;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .popular-stats {
+            display: flex;
+            gap: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .view-count {
+            font-weight: 500;
+        }
+        
+        .no-popular {
+            text-align: center;
+            padding: 30px 20px;
+            color: #666;
+        }
+        
+        .no-popular p {
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+        
+        .no-popular small {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        /* 最新書目區塊樣式 */
+        .newest-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: 2px solid #FFA500;
+        }
+        
+        .newest-header {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #FFA500;
+        }
+        
+        .newest-header h2 {
+            color: #8B4513;
+            font-size: 18px;
+            margin: 0;
+        }
+        
+        .newest-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .newest-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #FFF8DC;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .newest-item:hover {
+            background: #FFE4CC;
+            transform: translateX(5px);
+        }
+        
+        .newest-rank {
+            width: 30px;
+            height: 30px;
+            background: #FFA500;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .newest-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .newest-title {
+            font-weight: bold;
+            color: #8B4513;
+            font-size: 14px;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .newest-stats {
+            display: flex;
+            gap: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .create-date {
+            font-weight: 500;
+        }
+        
+        .no-newest {
+            text-align: center;
+            padding: 30px 20px;
+            color: #666;
+        }
+        
+        .no-newest p {
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+        
+        .no-newest small {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        /* 書目推薦區塊樣式 */
+        .recommendations-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: 2px solid #FFD700;
+        }
+        
+        .recommendations-section .row {
+            margin: 0;
+        }
+        
+        .recommendations-section .col-md-6 {
+            padding: 0 10px;
+        }
+        
+        .recommendations-section .col-md-6:first-child {
+            padding-left: 0;
+        }
+        
+        .recommendations-section .col-md-6:last-child {
+            padding-right: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>🔍 Oracle 19c 查詢系統</h1>
+            <div class="user-info">
+                <span class="username">👤 {{ current_user }}</span>
+                {% if is_admin %}
+                <a href="{{ url_for('auth.admin_choice') }}" class="logout">👑 管理後台</a>
+                {% endif %}
+                <a href="{{ url_for('auth.logout') }}" class="logout">🚪 登出</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-indicator" id="dbStatus"></span>
+                <span id="dbStatusText">檢查資料庫連線中...</span>
+            </div>
+            <div class="status-item">
+                <span>登入時間：{{ login_time | datetime if login_time else '未知' }}</span>
+            </div>
+        </div>
+        
+        <div class="main-layout">
+            <!-- 左側：搜尋功能 -->
+            <div class="query-section">
+                <div class="query-header">
+                    <h2>📚 報告搜尋</h2>
+                </div>
+                
+                <!-- 快速搜尋表單 -->
+                <div class="form-group">
+                    <label for="quickSearch">快速搜尋：</label>
+                    <form id="quickSearchForm" action="{{ url_for('search.results') }}" method="GET">
+                        <div class="search-input-group">
+                            <input type="text" id="quickSearch" name="q" placeholder="輸入關鍵字搜尋報告..." class="search-input">
+                            <button type="submit" class="btn btn-primary search-btn">
+                                🔍 搜尋
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="form-group">
+                    <a href="{{ url_for('search.advanced') }}" class="btn btn-secondary" style="width: 100%;">
+                        🔧 進階搜尋
+                    </a>
+                </div>
+                
+                <div class="query-header" style="margin-top: 30px;">
+                    <h2>🏛️ 專題館</h2>
+                </div>
+                
+                <div class="form-group">
+                    <a href="{{ url_for('collection.list_collections') }}" class="btn btn-primary" style="width: 100%;">
+                        📚 瀏覽專題館
+                    </a>
+                </div>
+                
+                <div class="form-group">
+                    <a href="{{ url_for('collection.admin') }}" class="btn btn-secondary" style="width: 100%;">
+                        ⚙️ 專題館管理
+                    </a>
+                </div>
+                
+                <!-- 跨資料表聯合搜尋 -->
+                <div class="query-header" style="margin-top: 30px;">
+                    <h2>🔍 跨資料表聯合搜尋</h2>
+                    <p style="color: #666; font-size: 14px; margin-top: 5px;">
+                        四種資料類型統一檢索：技術報告、史政、逸光報、史政照片
+                    </p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="unifiedSearch">關鍵字搜尋：</label>
+                    <input type="text" id="unifiedSearch" placeholder="請輸入搜尋關鍵字..." 
+                           style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-info" onclick="unifiedSearch()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        🔍 跨表搜尋
+                    </button>
+                    <a href="{{ url_for('search.unified_search') }}" class="btn btn-secondary">
+                        📋 進階搜尋
+                    </a>
+                </div>
+                
+                <div class="form-group" style="margin-top: 15px;">
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; border-left: 4px solid #667eea;">
+                        <h4 style="margin: 0 0 10px 0; color: #333;">📊 資料類型說明</h4>
+                        <ul style="margin: 0; padding-left: 20px; color: #666; font-size: 14px;">
+                            <li style="margin-bottom: 5px;"><span style="background: #E6F3FF; padding: 2px 6px; border-radius: 3px;">技術報告</span> - 淡藍色背景</li>
+                            <li style="margin-bottom: 5px;"><span style="background: #E6FFE6; padding: 2px 6px; border-radius: 3px;">史政</span> - 淡綠色背景</li>
+                            <li style="margin-bottom: 5px;"><span style="background: #F0F0F0; padding: 2px 6px; border-radius: 3px;">逸光報</span> - 淡灰色背景</li>
+                            <li><span style="background: #FFFFE6; padding: 2px 6px; border-radius: 3px;">史政照片</span> - 淡黃色背景</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="query-header" style="margin-top: 30px;">
+                    <h2>SQL 查詢</h2>
+                </div>
+                
+                <div class="form-group">
+                    <label for="sqlQuery">SQL 語句：</label>
+                    <textarea id="sqlQuery" placeholder="請輸入 SQL 查詢語句...&#10;例如：SELECT * FROM users WHERE rownum <= 10"></textarea>
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="executeQuery()">🔍 執行查詢</button>
+                    <button class="btn btn-secondary" onclick="clearQuery()">🗑️ 清除</button>
+                </div>
+                
+                <div id="queryStatus" style="margin-top: 20px; text-align: center;"></div>
+            </div>
+            
+            <!-- 右側：書目推薦區塊 -->
+            <div class="recommendations-section">
+                <!-- Bootstrap Row for two columns -->
+                <div class="row">
+                    <!-- 熱門推薦 - Left Column -->
+                    <div class="col-md-6">
+                        <div class="popular-section">
+                            <div class="popular-header">
+                                <h2>🔥 熱門推薦</h2>
+                            </div>
+                            
+                            <div class="popular-list">
+                                {% if popular_books %}
+                                    {% for book in popular_books %}
+                                    <div class="popular-item" onclick="viewDetail('{{ book.DOC_ID }}')">
+                                        <div class="popular-rank">{{ loop.index }}</div>
+                                        <div class="popular-info">
+                                            <div class="popular-title">
+                                                {{ book.TITLE }}
+                                                <span class="badge badge-secondary">{{ book.LAST_VIEW_TIME | replace('-', '/') }}</span>
+                                            </div>
+                                            <div class="popular-stats">
+                                                <span class="view-count">👁️ {{ book.VIEW_COUNT }} 次瀏覽</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="no-popular">
+                                        <p>📚 暫無熱門書目資料</p>
+                                        <small>開始瀏覽書目後將顯示熱門推薦</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 新進書目 - Right Column -->
+                    <div class="col-md-6">
+                        <div class="newest-section">
+                            <div class="newest-header">
+                                <h2>🆕 新進書目</h2>
+                            </div>
+                            
+                            <div class="newest-list">
+                                {% if newest_books %}
+                                    {% for book in newest_books %}
+                                    <div class="newest-item" onclick="viewDetail('{{ book.DOC_ID }}')">
+                                        <div class="newest-rank">{{ loop.index }}</div>
+                                        <div class="newest-info">
+                                            <div class="newest-title">
+                                                {{ book.TITLE }}
+                                                <span class="badge badge-info">{{ book.CREATED_DATE[:10].replace('-', '/') }}</span>
+                                            </div>
+                                            <div class="newest-stats">
+                                                <span class="create-date text-muted">{{ book.CREATED_DATE[:10].replace('-', '/') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="no-newest">
+                                        <p>📚 暫無新進書目資料</p>
+                                        <small>系統正在更新書目資料庫</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 快速連結區塊 -->
+            <div class="links-section">
+                <div class="links-header">
+                    <h2>快速連結</h2>
+                </div>
+                
+                <div class="links-grid" id="linksGrid">
+                {% for link in portal_links %}
+                <a href="{{ url_for('search.portal_page', page_id=link.ID) }}" class="link-btn">
+                    <div class="icon">{{ link.ICON or '🔗' }}</div>
+                    <div class="name">{{ link.TITLE or '未命名' }}</div>
+                    <div class="description">{{ link.DESCRIPTION or '暫無描述' }}</div>
+                </a>
+                {% endfor %}
+            </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentResults = [];
+        let linksData = [];
+        
+        // 載入連結配置
+        function loadLinks() {
+            fetch('{{ url_for("auth.get_portal_links") }}')
+            .then(response => response.json())
+            .then(data => {
+                linksData = data;
+                renderLinks();
+            })
+            .catch(error => {
+                console.error('載入連結失敗:', error);
+                document.getElementById('linksGrid').innerHTML = '<div class="error">載入連結失敗</div>';
+            });
+        }
+        
+        // 查看書目詳情
+        function viewDetail(docId) {
+            window.location.href = `/detail/${docId}`;
+        }
+        
+        // 渲染連結（如果需要動態載入）
+        function renderLinks() {
+            // 連結已在模板中靜態渲染，此函式保留以備將來使用
+        }
+        
+        // 顯示連結按鈕
+        function displayLinks() {
+            const linksGrid = document.getElementById('linksGrid');
+            
+            if (linksData.length === 0) {
+                linksGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #666;">📭 沒有可用的連結</div>';
+                return;
+            }
+            
+            let linksHTML = '';
+            linksData.forEach(link => {
+                linksHTML += `
+                    <div class="link-btn" onclick="handleLinkClick('${link.url}', '${link.action || ''}')">
+                        <div class="icon">${link.icon}</div>
+                        <div class="name">${link.name}</div>
+                        <div class="description">${link.description}</div>
+                    </div>
+                `;
+            });
+            
+            linksGrid.innerHTML = linksHTML;
+        }
+        
+        // 處理連結點擊
+        function handleLinkClick(url, action) {
+            if (action) {
+                // 執行 JavaScript 動作
+                switch(action) {
+                    case 'showSchema':
+                        showSchema();
+                        break;
+                    case 'testConnection':
+                        testConnection();
+                        break;
+                    case 'exportResults':
+                        exportResults();
+                        break;
+                    default:
+                        console.log('未知動作:', action);
+                }
+            } else if (url && url !== '#') {
+                // 跳轉到 URL
+                window.location.href = url;
+            }
+        }
+        
+        // 執行查詢
+        function executeQuery() {
+            const sql = document.getElementById('sqlQuery').value.trim();
+            
+            if (!sql) {
+                alert('請輸入 SQL 查詢語句');
+                return;
+            }
+            
+            // 顯示載入狀態
+            const queryStatus = document.getElementById('queryStatus');
+            queryStatus.innerHTML = '<div class="loading">正在執行查詢</div>';
+            
+            // 建立表單資料
+            const formData = new FormData();
+            formData.append('sql', sql);
+            
+            // 發送查詢請求
+            fetch('{{ url_for("search.query") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                queryStatus.innerHTML = '';
+                
+                if (data.success) {
+                    // 將結果傳遞到 results.html
+                    const resultsData = btoa(JSON.stringify(data)); // Base64 編碼
+                    window.location.href = `{{ url_for('search.results') }}?data=${resultsData}`;
+                } else {
+                    queryStatus.innerHTML = `<div style="color: #DC143C;">❌ 查詢失敗：${data.message}</div>`;
+                }
+            })
+            .catch(error => {
+                queryStatus.innerHTML = `<div style="color: #DC143C;">❌ 查詢失敗：${error.message}</div>`;
+            });
+        }
+        
+        // 清除查詢
+        function clearQuery() {
+            document.getElementById('sqlQuery').value = '';
+            document.getElementById('queryStatus').innerHTML = '';
+        }
+        
+        // 跨資料表聯合搜尋
+        function unifiedSearch() {
+            const keyword = document.getElementById('unifiedSearch').value.trim();
+            if (!keyword) {
+                alert('請輸入搜尋關鍵字');
+                return;
+            }
+            
+            // 跳轉到跨表搜尋結果頁面
+            window.location.href = `{{ url_for('search.unified_search') }}?q=${encodeURIComponent(keyword)}`;
+        }
+        
+        // 支援 Enter 鍵搜尋
+        document.addEventListener('DOMContentLoaded', function() {
+            const unifiedSearchInput = document.getElementById('unifiedSearch');
+            if (unifiedSearchInput) {
+                unifiedSearchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        unifiedSearch();
+                    }
+                });
+            }
+        });
+        
+        // 顯示資料庫架構
+        function showSchema() {
+            fetch('{{ url_for("search.get_schema") }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('📊 資料庫架構資訊已載入，請查看詳細資訊');
+                    console.log('資料庫架構:', data.data);
+                } else {
+                    alert('❌ 取得資料庫架構失敗：' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('❌ 取得資料庫架構失敗：' + error.message);
+            });
+        }
+        
+        // 測試連線
+        function testConnection() {
+            fetch('{{ url_for("search.test_db_connection") }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ 資料庫連線正常');
+                } else {
+                    alert('❌ 資料庫連線失敗：' + data.message);
+                }
+                updateDbStatus();
+            })
+            .catch(error => {
+                alert('❌ 測試連線失敗：' + error.message);
+            });
+        }
+        
+        // 匯出結果
+        function exportResults() {
+            if (currentResults.length === 0) {
+                alert('沒有查詢結果可以匯出');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('format', 'csv');
+            formData.append('data', JSON.stringify(currentResults));
+            
+            fetch('{{ url_for("search.export_results") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.text();
+                }
+                throw new Error('匯出失敗');
+            })
+            .then(csvData => {
+                // 建立下載連結
+                const blob = new Blob([csvData], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'query_results.csv';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(error => {
+                alert('❌ 匯出失敗：' + error.message);
+            });
+        }
+        
+        // 更新資料庫狀態
+        function updateDbStatus() {
+            fetch('{{ url_for("search.test_db_connection") }}')
+            .then(response => response.json())
+            .then(data => {
+                const statusIndicator = document.getElementById('dbStatus');
+                const statusText = document.getElementById('dbStatusText');
+                
+                if (data.success) {
+                    statusIndicator.className = 'status-indicator connected';
+                    statusText.textContent = '資料庫連線正常';
+                } else {
+                    statusIndicator.className = 'status-indicator disconnected';
+                    statusText.textContent = '資料庫連線失敗';
+                }
+            })
+            .catch(error => {
+                const statusIndicator = document.getElementById('dbStatus');
+                const statusText = document.getElementById('dbStatusText');
+                statusIndicator.className = 'status-indicator disconnected';
+                statusText.textContent = '無法檢查連線狀態';
+            });
+        }
+        
+        // 頁面載入時初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLinks();
+            updateDbStatus();
+            
+            // 每 30 秒更新一次狀態
+            setInterval(updateDbStatus, 30000);
+            
+            // 自動聚焦到 SQL 輸入框
+            document.getElementById('sqlQuery').focus();
+        });
+    </script>
+</body>
+</html>

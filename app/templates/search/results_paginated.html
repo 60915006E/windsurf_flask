@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查詢結果 - Oracle 查詢系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft JhengHei', '微軟正黑體', Arial, sans-serif;
+            background: linear-gradient(135deg, #FFFFE0 0%, #FFF8DC 100%);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #333;
+        }
+        
+        .user-info .username {
+            font-weight: bold;
+        }
+        
+        .user-info .logout {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #333;
+            transition: background 0.3s;
+        }
+        
+        .user-info .logout:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        
+        .results-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            border: 2px solid #FFD700;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-header h2 {
+            color: #8B4513;
+            font-size: 24px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #FFA500, #FF8C00);
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .search-box {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #FFD700;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+        }
+        
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .results-table th {
+            background: #FFF8DC;
+            color: #8B4513;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+        
+        .results-table tr:hover {
+            background: #FFF8DC;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .pagination-info {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+            min-width: 40px;
+        }
+        
+        .page-btn:hover {
+            background: #FFF8DC;
+            border-color: #FFD700;
+        }
+        
+        .page-btn.active {
+            background: #FFD700;
+            color: #333;
+            font-weight: bold;
+            border-color: #FFA500;
+        }
+        
+        .page-btn:disabled {
+            background: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+            border-color: #dee2e6;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .query-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+            display: none;
+        }
+        
+        .query-info pre {
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #FFD700;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>🔍 Oracle 19c 查詢系統</h1>
+            <div class="user-info">
+                <span class="username">👤 {{ current_user }}</span>
+                <a href="{{ url_for('auth.logout') }}" class="logout">🚪 登出</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="results-section">
+            <div class="section-header">
+                <h2>📊 查詢結果</h2>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="toggleQueryInfo()">📝 查看查詢</button>
+                    <button class="btn btn-success" onclick="exportResults()">📥 匯出結果</button>
+                    <button class="btn btn-secondary" onclick="goBack()">🔙 返回</button>
+                </div>
+            </div>
+            
+            <div class="query-info" id="queryInfo">
+                <h3>📝 SQL 查詢</h3>
+                <pre id="sqlQuery"></pre>
+            </div>
+            
+            <div class="table-controls">
+                <input type="text" class="search-box" id="searchBox" placeholder="搜尋結果..." onkeyup="searchResults()">
+                <span id="recordCount"></span>
+            </div>
+            
+            <div id="resultsContent">
+                <div class="loading">載入查詢結果中...</div>
+            </div>
+            
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+    
+    <script>
+        let queryData = [];
+        let filteredData = [];
+        let currentPage = 1;
+        let paginationData = null;
+        const recordsPerPage = 50;
+        
+        // 頁面載入時處理 URL 參數
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dataParam = urlParams.get('data');
+            
+            if (dataParam) {
+                try {
+                    // 解碼 Base64 資料
+                    const decodedData = atob(dataParam);
+                    const result = JSON.parse(decodedData);
+                    queryData = result.data || [];
+                    paginationData = result.pagination || null;
+                    filteredData = [...queryData];
+                    
+                    displayResults();
+                    updateResultsInfo();
+                } catch (error) {
+                    console.error('解析查詢結果失敗:', error);
+                    showError('查詢結果解析失敗');
+                }
+            } else {
+                showError('沒有查詢結果資料');
+            }
+        });
+        
+        function displayResults() {
+            const resultsContent = document.getElementById('resultsContent');
+            
+            if (filteredData.length === 0) {
+                resultsContent.innerHTML = '<div class="no-results">📭 沒有找到符合條件的資料</div>';
+                document.getElementById('recordCount').textContent = '共 0 筆資料';
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+            
+            // 建立表格 HTML
+            let tableHTML = '<table class="results-table"><thead><tr>';
+            
+            // 表頭
+            const columns = Object.keys(filteredData[0]);
+            columns.forEach(column => {
+                tableHTML += `<th>${column}</th>`;
+            });
+            tableHTML += '</tr></thead><tbody>';
+            
+            // 資料行
+            filteredData.forEach(row => {
+                tableHTML += '<tr>';
+                columns.forEach(column => {
+                    const value = row[column] !== null ? row[column] : '';
+                    tableHTML += `<td>${value}</td>`;
+                });
+                tableHTML += '</tr>';
+            });
+            
+            tableHTML += '</tbody></table>';
+            resultsContent.innerHTML = tableHTML;
+            
+            // 更新分頁
+            updatePagination();
+        }
+        
+        function updatePagination() {
+            if (paginationData) {
+                // 後端分頁
+                updateBackendPagination();
+            } else {
+                // 前端分頁
+                updateFrontendPagination();
+            }
+        }
+        
+        function updateBackendPagination() {
+            if (!paginationData) return;
+            
+            const pagination = document.getElementById('pagination');
+            const { total, page, per_page, total_pages, has_next, has_prev } = paginationData;
+            
+            // 更新記錄數量
+            const startIndex = (page - 1) * per_page + 1;
+            const endIndex = Math.min(page * per_page, total);
+            document.getElementById('recordCount').textContent = `共 ${total} 筆資料 (第 ${startIndex}-${endIndex} 筆)`;
+            
+            if (total_pages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+            
+            let paginationHTML = `<div class="pagination-info">第 ${page} 頁，共 ${total_pages} 頁</div>`;
+            
+            // 第一頁
+            paginationHTML += `<button class="page-btn" ${page === 1 ? 'disabled' : ''} onclick="goToPage(1)">第一頁</button>`;
+            
+            // 上一頁
+            paginationHTML += `<button class="page-btn" ${!has_prev ? 'disabled' : ''} onclick="goToPage(${page - 1})">上一頁</button>`;
+            
+            // 頁碼（最多顯示 5 頁）
+            let startPage = Math.max(1, page - 2);
+            let endPage = Math.min(total_pages, page + 2);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                if (i === page) {
+                    paginationHTML += `<button class="page-btn active">${i}</button>`;
+                } else {
+                    paginationHTML += `<button class="page-btn" onclick="goToPage(${i})">${i}</button>`;
+                }
+            }
+            
+            // 下一頁
+            paginationHTML += `<button class="page-btn" ${!has_next ? 'disabled' : ''} onclick="goToPage(${page + 1})">下一頁</button>`;
+            
+            // 最末頁
+            paginationHTML += `<button class="page-btn" ${page === total_pages ? 'disabled' : ''} onclick="goToPage(${total_pages})">最末頁</button>`;
+            
+            pagination.innerHTML = paginationHTML;
+        }
+        
+        function updateFrontendPagination() {
+            const totalPages = Math.ceil(filteredData.length / recordsPerPage);
+            const pagination = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                document.getElementById('recordCount').textContent = `共 ${filteredData.length} 筆資料`;
+                return;
+            }
+            
+            const startIndex = (currentPage - 1) * recordsPerPage + 1;
+            const endIndex = Math.min(currentPage * recordsPerPage, filteredData.length);
+            document.getElementById('recordCount').textContent = `共 ${filteredData.length} 筆資料 (第 ${startIndex}-${endIndex} 筆)`;
+            
+            let paginationHTML = `<div class="pagination-info">第 ${currentPage} 頁，共 ${totalPages} 頁</div>`;
+            
+            // 第一頁
+            paginationHTML += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(1)">第一頁</button>`;
+            
+            // 上一頁
+            paginationHTML += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">上一頁</button>`;
+            
+            // 頁碼（最多顯示 5 頁）
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+            
+            for (let i = startPage; i <= endPage; i++) {
+                if (i === currentPage) {
+                    paginationHTML += `<button class="page-btn active">${i}</button>`;
+                } else {
+                    paginationHTML += `<button class="page-btn" onclick="changePage(${i})">${i}</button>`;
+                }
+            }
+            
+            // 下一頁
+            paginationHTML += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">下一頁</button>`;
+            
+            // 最末頁
+            paginationHTML += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${totalPages})">最末頁</button>`;
+            
+            pagination.innerHTML = paginationHTML;
+        }
+        
+        function goToPage(page) {
+            if (paginationData) {
+                // 後端分頁：需要重新執行查詢
+                executePaginatedQuery(page);
+            } else {
+                // 前端分頁
+                currentPage = page;
+                displayResults();
+            }
+        }
+        
+        function changePage(page) {
+            currentPage = page;
+            displayResults();
+        }
+        
+        function executePaginatedQuery(page) {
+            // 這裡需要與後端 API 整合
+            // 實際實作中，這需要重新執行查詢並取得新頁資料
+            alert('後端分頁功能需要與查詢 API 整合，目前顯示第 ' + page + ' 頁');
+        }
+        
+        function searchResults() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            
+            if (searchTerm === '') {
+                filteredData = [...queryData];
+            } else {
+                filteredData = queryData.filter(row => {
+                    return Object.values(row).some(value => 
+                        value !== null && value.toString().toLowerCase().includes(searchTerm)
+                    );
+                });
+            }
+            
+            currentPage = 1;
+            displayResults();
+        }
+        
+        function updateResultsInfo() {
+            const resultsInfo = document.getElementById('resultsInfo');
+            const executionTime = new Date().toLocaleString();
+            resultsInfo.querySelector('.query-info h3').textContent = `📝 查詢時間: ${executionTime}`;
+        }
+        
+        function toggleQueryInfo() {
+            const queryInfo = document.getElementById('queryInfo');
+            const sqlQuery = document.getElementById('sqlQuery');
+            
+            if (queryInfo.style.display === 'none') {
+                // 這裡可以顯示實際的 SQL 查詢
+                sqlQuery.textContent = 'SELECT * FROM (查詢結果已傳遞)';
+                queryInfo.style.display = 'block';
+            } else {
+                queryInfo.style.display = 'none';
+            }
+        }
+        
+        function exportResults() {
+            if (filteredData.length === 0) {
+                alert('沒有資料可以匯出');
+                return;
+            }
+            
+            // 建立內容
+            let csvContent = '\uFEFF'; // UTF-8 BOM
+            
+            // 表頭
+            const columns = Object.keys(filteredData[0]);
+            csvContent += columns.join(',') + '\n';
+            
+            // 資料行
+            filteredData.forEach(row => {
+                const values = columns.map(column => {
+                    const value = row[column] !== null ? row[column] : '';
+                    // 處理包含逗號或換行的值
+                    if (value.toString().includes(',') || value.toString().includes('\n')) {
+                        return `"${value.toString().replace(/"/g, '""')}"`;
+                    }
+                    return value;
+                });
+                csvContent += values.join(',') + '\n';
+            });
+            
+            // 建立下載
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `query_results_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function goBack() {
+            window.location.href = '{{ url_for("search.index") }}';
+        }
+        
+        function showError(message) {
+            const resultsContent = document.getElementById('resultsContent');
+            resultsContent.innerHTML = `<div class="no-results" style="color: #DC143C;">❌ ${message}</div>`;
+            document.getElementById('recordCount').textContent = '共 0 筆資料';
+            document.getElementById('pagination').innerHTML = '';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ document.DATA_TYPE_NAME }} 詳情 - Flask 查詢系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft JhengHei', Arial, sans-serif;
+            background-color: #FFFFE0;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .breadcrumb {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .breadcrumb a {
+            color: #007bff;
+            text-decoration: none;
+            margin-right: 8px;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        
+        .breadcrumb span {
+            color: #666;
+        }
+        
+        .detail-section {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .detail-header {
+            padding: 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .detail-header h2 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .data-type-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .data-type-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .type-1-badge {
+            background: #E6F3FF;
+            color: #0066cc;
+        }
+        
+        .type-2-badge {
+            background: #E6FFE6;
+            color: #006600;
+        }
+        
+        .type-3-badge {
+            background: #F0F0F0;
+            color: #666666;
+        }
+        
+        .type-4-badge {
+            background: #FFFFE6;
+            color: #cc9900;
+        }
+        
+        .unique-id {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-weight: 500;
+        }
+        
+        .detail-content {
+            padding: 30px;
+        }
+        
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .detail-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .detail-value {
+            color: #333;
+            font-size: 16px;
+            word-wrap: break-word;
+        }
+        
+        .detail-value.empty {
+            color: #999;
+            font-style: italic;
+        }
+        
+        .attachments-section {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .attachments-header {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .attachments-header h3 {
+            font-size: 1.4em;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .attachments-content {
+            padding: 30px;
+        }
+        
+        .attachment-list {
+            list-style: none;
+        }
+        
+        .attachment-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .attachment-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .attachment-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .attachment-icon {
+            font-size: 24px;
+            color: #007bff;
+        }
+        
+        .attachment-details h4 {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .attachment-details p {
+            font-size: 14px;
+            color: #666;
+            margin: 0;
+        }
+        
+        .download-btn {
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .download-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        
+        .no-attachments {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .no-attachments h4 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #666;
+            border-top: 1px solid #e9ecef;
+            margin-top: 40px;
+        }
+        
+        /* 資料類型背景色 */
+        .type-1-bg {
+            background-color: #E6F3FF !important; /* 淡藍色 - 技術報告 */
+        }
+        
+        .type-2-bg {
+            background-color: #E6FFE6 !important; /* 淡綠色 - 史政 */
+        }
+        
+        .type-3-bg {
+            background-color: #F0F0F0 !important; /* 淡灰色 - 逸光報 */
+        }
+        
+        .type-4-bg {
+            background-color: #FFFFE6 !important; /* 淡黃色 - 史政照片 */
+        }
+        
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .detail-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .data-type-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .attachment-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .attachment-info {
+                width: 100%;
+            }
+            
+            .download-btn {
+                width: 100%;
+                text-align: center;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📄 {{ document.DATA_TYPE_NAME }} 詳情</h1>
+            <p>詳細資訊與附件下載</p>
+        </header>
+        
+        <nav class="breadcrumb">
+            <a href="{{ url_for('search.index') }}">🏠 首頁</a>
+            <span>›</span>
+            <a href="{{ url_for('search.unified_search') }}">🔍 跨表搜尋</a>
+            <span>›</span>
+            <span>📄 {{ document.DATA_TYPE_NAME }} 詳情</span>
+        </nav>
+        
+        <section class="detail-section type-{{ document.DATA_TYPE }}-bg">
+            <div class="detail-header">
+                <div class="data-type-info">
+                    <span class="data-type-badge type-{{ document.DATA_TYPE }}-badge">
+                        {{ document.DATA_TYPE_NAME }}
+                    </span>
+                    <div class="unique-id">
+                        🆔 {{ document.UNIQUE_ID }}
+                    </div>
+                </div>
+                
+                <h2>
+                    {% if document.TITLE %}
+                        {{ document.TITLE }}
+                    {% elif document.HS_NAME %}
+                        {{ document.HS_NAME }}
+                    {% elif document.TO_NAME %}
+                        {{ document.TO_NAME }}
+                    {% elif document.PAPER_NAME %}
+                        {{ document.PAPER_NAME }}
+                    {% else %}
+                        未命名資料
+                    {% endif %}
+                </h2>
+            </div>
+            
+            <div class="detail-content">
+                <div class="detail-grid">
+                    <!-- 技術報告欄位 -->
+                    {% if document.DATA_TYPE == '1' %}
+                        {% if document.RP_CSI_NAME %}
+                        <div class="detail-item">
+                            <div class="detail-label">報告主號</div>
+                            <div class="detail-value">{{ document.RP_CSI_NAME or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.RP_CAT_NAME %}
+                        <div class="detail-item">
+                            <div class="detail-label">性質</div>
+                            <div class="detail-value">{{ document.RP_CAT_NAME or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.RP_TYPE_NAME %}
+                        <div class="detail-item">
+                            <div class="detail-label">分類</div>
+                            <div class="detail-value">{{ document.RP_TYPE_NAME or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.SECERT_LV_NAME %}
+                        <div class="detail-item">
+                            <div class="detail-label">機密等級</div>
+                            <div class="detail-value">{{ document.SECERT_LV_NAME or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.TRADE_SECERT_NAME %}
+                        <div class="detail-item">
+                            <div class="detail-label">贏密類型</div>
+                            <div class="detail-value">{{ document.TRADE_SECERT_NAME or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.TRAIN_NAME %}
+                        <div class="detail-item">
+                            <div class="detail-label">受訓類型</div>
+                            <div class="detail-value">{{ document.TRAIN_NAME or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.HOST_NAME %}
+                        <div class="detail-item">
+                            <div class="detail-label">報告單位</div>
+                            <div class="detail-value">{{ document.HOST_NAME or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.YEAR %}
+                        <div class="detail-item">
+                            <div class="detail-label">報告年度</div>
+                            <div class="detail-value">{{ document.YEAR or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.MAIN_AUTHOR %}
+                        <div class="detail-item">
+                            <div class="detail-label">主要作者</div>
+                            <div class="detail-value">{{ document.MAIN_AUTHOR or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.MAIN_AUTHOR_DEPT_NAME %}
+                        <div class="detail-item">
+                            <div class="detail-label">主作者單位</div>
+                            <div class="detail-value">{{ document.MAIN_AUTHOR_DEPT_NAME or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.AUTHOR_LIST %}
+                        <div class="detail-item">
+                            <div class="detail-label">所有作者</div>
+                            <div class="detail-value">{{ document.AUTHOR_LIST | replace(',', ', ') or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.SUMMARY %}
+                        <div class="detail-item">
+                            <div class="detail-label">摘要</div>
+                            <div class="detail-value">{{ document.SUMMARY or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.DESCRIPTION %}
+                        <div class="detail-item">
+                            <div class="detail-label">現況敘述</div>
+                            <div class="detail-value">{{ document.DESCRIPTION or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.APPLICATION %}
+                        <div class="detail-item">
+                            <div class="detail-label">應用敘述</div>
+                            <div class="detail-value">{{ document.APPLICATION or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.RP_LIB_TITLE_LIST %}
+                        <div class="detail-item">
+                            <div class="detail-label">其他號碼</div>
+                            <div class="detail-value">{{ document.RP_LIB_TITLE_LIST | replace(',', ', ') or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.RP_OTHER_TITLE_LIST %}
+                        <div class="detail-item">
+                            <div class="detail-label">自編號</div>
+                            <div class="detail-value">{{ document.RP_OTHER_TITLE_LIST | replace(',', ', ') or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.RP_OTHER_NAME_LIST %}
+                        <div class="detail-item">
+                            <div class="detail-label">其他名稱</div>
+                            <div class="detail-value">{{ document.RP_OTHER_NAME_LIST | replace(',', ', ') or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.RP_KEYWORD_LIST %}
+                        <div class="detail-item">
+                            <div class="detail-label">關鍵字</div>
+                            <div class="detail-value">{{ document.RP_KEYWORD_LIST | replace(',', ', ') or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.RP_PLAN_LIST %}
+                        <div class="detail-item">
+                            <div class="detail-label">計畫名稱</div>
+                            <div class="detail-value">{{ document.RP_PLAN_LIST | replace(',', ', ') or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.PAGE %}
+                        <div class="detail-item">
+                            <div class="detail-label">頁數</div>
+                            <div class="detail-value">{{ document.PAGE or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.PUBLIC_DATE %}
+                        <div class="detail-item">
+                            <div class="detail-label">發布日期</div>
+                            <div class="detail-value">{{ document.PUBLIC_DATE or '-' }}</div>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <!-- 史政欄位 -->
+                    {% if document.DATA_TYPE == '2' %}
+                        {% if document.HS_CAT_NAME %}
+                        <div class="detail-item">
+                            <div class="detail-label">史政類型</div>
+                            <div class="detail-value">{{ document.HS_CAT_NAME or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.PUBLISH_YEAR %}
+                        <div class="detail-item">
+                            <div class="detail-label">出版年</div>
+                            <div class="detail-value">{{ document.PUBLISH_YEAR or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.HS_SUMMARY %}
+                        <div class="detail-item">
+                            <div class="detail-label">內容</div>
+                            <div class="detail-value">{{ document.HS_SUMMARY or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.HA_NO %}
+                        <div class="detail-item">
+                            <div class="detail-label">史政文物編號</div>
+                            <div class="detail-value">{{ document.HA_NO or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.HA_TYPE %}
+                        <div class="detail-item">
+                            <div class="detail-label">史政文物類型</div>
+                            <div class="detail-value">{{ document.HA_TYPE or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.HA_UNIT_NUM %}
+                        <div class="detail-item">
+                            <div class="detail-label">史政文物數量</div>
+                            <div class="detail-value">{{ document.HA_UNIT_NUM or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.HA_UNIT_NAME %}
+                        <div class="detail-item">
+                            <div class="detail-label">史政文物名稱</div>
+                            <div class="detail-value">{{ document.HA_UNIT_NAME or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.HA_LIB_MANAGE %}
+                        <div class="detail-item">
+                            <div class="detail-label">史政文物狀況</div>
+                            <div class="detail-value">{{ document.HA_LIB_MANAGE or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.HA_GET_INFO %}
+                        <div class="detail-item">
+                            <div class="detail-label">史政文物取得資訊</div>
+                            <div class="detail-value">{{ document.HA_GET_INFO or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.GET_YEAR %}
+                        <div class="detail-item">
+                            <div class="detail-label">史政文物取得年度</div>
+                            <div class="detail-value">{{ document.GET_YEAR or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.HA_BELONG %}
+                        <div class="detail-item">
+                            <div class="detail-label">史政文物所屬單位</div>
+                            <div class="detail-value">{{ document.HA_BELONG or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.HA_SIZE %}
+                        <div class="detail-item">
+                            <div class="detail-label">史政文物大小</div>
+                            <div class="detail-value">{{ document.HA_SIZE or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.HA_ROUND %}
+                        <div class="detail-item">
+                            <div class="detail-label">史政文物直徑</div>
+                            <div class="detail-value">{{ document.HA_ROUND or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.HA_SPECIAL_SIZE %}
+                        <div class="detail-item">
+                            <div class="detail-label">史政文物特殊尺寸</div>
+                            <div class="detail-value">{{ document.HA_SPECIAL_SIZE or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.EVENT_DATE %}
+                        <div class="detail-item">
+                            <div class="detail-label">史政事件日期</div>
+                            <div class="detail-value">{{ document.EVENT_DATE or '-' }}</div>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <!-- 史政照片欄位 -->
+                    {% if document.DATA_TYPE == '4' %}
+                        {% if document.TO_DATE %}
+                        <div class="detail-item">
+                            <div class="detail-label">照片日期</div>
+                            <div class="detail-value">{{ document.TO_DATE or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.TO_PLACE %}
+                        <div class="detail-item">
+                            <div class="detail-label">照片地點</div>
+                            <div class="detail-value">{{ document.TO_PLACE or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.TO_PEOPLE %}
+                        <div class="detail-item">
+                            <div class="detail-label">照片人員</div>
+                            <div class="detail-value">{{ document.TO_PEOPLE or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.TO_SUMMARY %}
+                        <div class="detail-item">
+                            <div class="detail-label">照片說明</div>
+                            <div class="detail-value">{{ document.TO_SUMMARY or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.TO_DEPT_NAME %}
+                        <div class="detail-item">
+                            <div class="detail-label">照片單位名稱</div>
+                            <div class="detail-value">{{ document.TO_DEPT_NAME or '-' }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if document.TO_APPLY_DEPT_NAME %}
+                        <div class="detail-item">
+                            <div class="detail-label">照片提供單位名稱</div>
+                            <div class="detail-value">{{ document.TO_APPLY_DEPT_NAME or '-' }}</div>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                    
+                    <!-- 逸光報欄位 -->
+                    {% if document.DATA_TYPE == '3' %}
+                        {% if document.PAPER_AUTHOR %}
+                        <div class="detail-item">
+                            <div class="detail-label">報紙作者</div>
+                            <div class="detail-value">{{ document.PAPER_AUTHOR or '-' }}</div>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+        
+        <!-- 附件區域 -->
+        {% if attachments is defined %}
+        <section class="attachments-section">
+            <div class="attachments-header">
+                <h3>📎 附件下載</h3>
+            </div>
+            <div class="attachments-content">
+                {% if attachments %}
+                    <ul class="attachment-list">
+                        {% for attachment in attachments %}
+                        <li class="attachment-item">
+                            <div class="attachment-info">
+                                <div class="attachment-icon">📄</div>
+                                <div class="attachment-details">
+                                    <h4>{{ attachment.OVC_FILE_NAME }}</h4>
+                                    <p>
+                                        大小: {{ attachment.OVC_FILE_SIZE or '未知' }} bytes
+                                        {% if attachment.OVC_SYS_NO %}
+                                        | 系統編號: {{ attachment.OVC_SYS_NO }}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            <a href="{{ url_for('search.unified_download_attachment', data_type=document.DATA_TYPE, unique_id=document.UNIQUE_ID, filename=attachment.OVC_FILE_NAME) }}" 
+                               class="download-btn">
+                                ⬇ 下載
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="no-attachments">
+                        <h4>📭 無附件</h4>
+                        <p>此筆資料沒有可供下載的附件</p>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+        {% endif %}
+        
+        <!-- 操作按鈕 -->
+        <div class="action-buttons">
+            <a href="{{ url_for('search.unified_search') }}" class="btn btn-primary">
+                🔍 回到搜尋結果
+            </a>
+            <a href="{{ url_for('search.index') }}" class="btn btn-secondary">
+                🏠 回到首頁
+            </a>
+        </div>
+        
+        <footer class="footer">
+            <p>&copy; 2026 Flask 查詢系統 - 跨資料表聯合搜尋</p>
+        </footer>
+    </div>
+</body>
+</html>

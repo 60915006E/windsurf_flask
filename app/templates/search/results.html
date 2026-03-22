@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>搜尋結果 - Oracle 查詢系統</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft JhengHei', '微軟正黑體', Arial, sans-serif;
+            background: linear-gradient(135deg, #FFFFE0 0%, #FFF8DC 100%);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #333;
+        }
+        
+        .user-info .username {
+            font-weight: bold;
+        }
+        
+        .user-info .logout {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #333;
+            transition: background 0.3s;
+        }
+        
+        .user-info .logout:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        
+        .search-info {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            border: 2px solid #FFD700;
+        }
+        
+        .search-conditions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .condition-tag {
+            background: #FFF8DC;
+            padding: 5px 10px;
+            border-radius: 15px;
+            border: 1px solid #FFD700;
+            font-size: 12px;
+        }
+        
+        .results-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 2px solid #FFD700;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .results-header h2 {
+            color: #8B4513;
+            font-size: 20px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #FFA500, #FF8C00);
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        .results-table th {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+            border-bottom: 2px solid #FFA500;
+        }
+        
+        .results-table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            vertical-align: top;
+        }
+        
+        .results-table tr:hover {
+            background: #FFF8DC;
+        }
+        
+        .detail-btn {
+            background: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+        
+        .detail-btn:hover {
+            background: #0056b3;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .no-results h3 {
+            margin-bottom: 10px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #FFD700;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .flash-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .flash-message.success {
+            background: #E8F5E8;
+            color: #2E7D32;
+            border: 1px solid #4CAF50;
+        }
+        
+        .flash-message.error {
+            background: #FFE4E1;
+            color: #DC143C;
+            border: 1px solid #FF6B6B;
+        }
+        
+        .flash-message.warning {
+            background: #FFF3E0;
+            color: #F57C00;
+            border: 1px solid #FF9800;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>🔍 搜尋結果</h1>
+            <div class="user-info">
+                <span class="username">👤 {{ current_user }}</span>
+                <a href="{{ url_for('search.index') }}" class="logout">🏠 回首頁</a>
+                <a href="{{ url_for('auth.logout') }}" class="logout">🚪 登出</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        
+        <div class="search-info">
+            <h3>📊 搜尋條件</h3>
+            <div class="search-conditions">
+                {% if request.args.get('q') %}
+                    <span class="condition-tag">關鍵字: "{{ request.args.get('q') }}"</span>
+                {% endif %}
+                {% if request.args.get('dateFrom') %}
+                    <span class="condition-tag">發布日期(起): {{ request.args.get('dateFrom') }}</span>
+                {% endif %}
+                {% if request.args.get('dateTo') %}
+                    <span class="condition-tag">發布日期(迄): {{ request.args.get('dateTo') }}</span>
+                {% endif %}
+                {% if request.args.get('keyword') %}
+                    <span class="condition-tag">關鍵字: "{{ request.args.get('keyword') }}"</span>
+                {% endif %}
+                {% if request.args.get('category') %}
+                    <span class="condition-tag">分類: {{ request.args.get('category') }}</span>
+                {% endif %}
+                {% if request.args.get('csiName') %}
+                    <span class="condition-tag">報告主號: "{{ request.args.get('csiName') }}"</span>
+                {% endif %}
+                {% if request.args.get('author') %}
+                    <span class="condition-tag">作者: "{{ request.args.get('author') }}"</span>
+                {% endif %}
+                {% if request.args.get('securityLevel') %}
+                    <span class="condition-tag">機密等級: {{ request.args.get('securityLevel') }}</span>
+                {% endif %}
+                {% if request.args.get('trainType') %}
+                    <span class="condition-tag">受訓類型: {{ request.args.get('trainType') }}</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="results-section">
+            <div class="results-header">
+                <h2>📋 搜尋結果 ({{ results|length if results else 0 }} 筆)</h2>
+                <div class="btn-group">
+                    {% if results %}
+                        <button class="btn btn-success" onclick="exportToExcel()">📊 匯出 Excel</button>
+                    {% endif %}
+                    <a href="{{ url_for('search.advanced') }}" class="btn btn-secondary">🔧 進階搜尋</a>
+                    <a href="{{ url_for('search.index') }}" class="btn btn-primary">🏠 回首頁</a>
+                </div>
+            </div>
+            
+            {% if results is defined %}
+                {% if results %}
+                    <div class="table-container">
+                        <table class="results-table">
+                            <thead>
+                                <tr>
+                                    {% for field in field_settings %}
+                                        <th>{{ field.display_name }}</th>
+                                    {% endfor %}
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for result in results %}
+                                    <tr>
+                                        {% for field in field_settings %}
+                                            <td>
+                                                {% set value = result.get(field.field_id, '') %}
+                                                {% if value %}
+                                                    {% if field.field_type == 'DATE' %}
+                                                        {{ value }}
+                                                    {% elif field.field_id in ['RP_LIB_TITLE', 'RP_OTHER_TITLE', 'RP_OTHER_NAME', 'RP_KEYWORD', 'RP_PLAN_NAME', 'RP_PLAN_CDE'] %}
+                                                        {{ value | safe | truncate(50) if value|string|length > 50 else value | safe }}
+                                                    {% else %}
+                                                        {{ value | truncate(50) if value|string|length > 50 else value }}
+                                                    {% endif %}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                        {% endfor %}
+                                        <td>
+                                            <a href="{{ url_for('search.detail', doc_id=result.get('RP_NO', '')) }}" class="detail-btn">📄 詳情</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="no-results">
+                        <h3>😔 沒有找到符合條件的結果</h3>
+                        <p>請嘗試調整搜尋條件或使用進階搜尋功能</p>
+                        <div style="margin-top: 20px;">
+                            <a href="{{ url_for('search.advanced') }}" class="btn btn-primary">🔧 進階搜尋</a>
+                            <a href="{{ url_for('search.index') }}" class="btn btn-secondary">🏠 回首頁</a>
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="loading">
+                    正在載入搜尋結果...
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        // 匯出 Excel 功能
+        function exportToExcel() {
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = '匯出中...';
+            btn.disabled = true;
+            
+            // 收集當前搜尋條件
+            const searchParams = new URLSearchParams(window.location.search);
+            const params = {};
+            
+            // 處理所有可能的搜尋參數
+            for (const [key, value] of searchParams) {
+                params[key] = value;
+            }
+            
+            fetch('{{ url_for("search.export_excel") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(params)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                } else if (response.status === 400) {
+                    return response.json().then(data => {
+                        throw new Error(data.message || '匯出失敗');
+                    });
+                } else {
+                    throw new Error('匯出失敗');
+                }
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `報告搜尋結果_${new Date().toISOString().split('T')[0]}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            })
+            .catch(error => {
+                alert('匯出失敗：' + error.message);
+            })
+            .finally(() => {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            });
+        }
+    </script>
+</body>
+</html>
+            background: rgba(255, 255, 255, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #333;
+            transition: background 0.3s;
+        }
+        
+        .user-info .logout:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        
+        .results-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            border: 2px solid #FFD700;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .results-header h2 {
+            color: #8B4513;
+            font-size: 28px;
+        }
+        
+        .results-info {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #FFA500, #FF8C00);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .results-table th,
+        .results-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .results-table th {
+            background: #FFF8DC;
+            color: #8B4513;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+        
+        .results-table tr:hover {
+            background: #FFF8DC;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #FFD700;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .query-info {
+            background: #FFF8DC;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #FFD700;
+        }
+        
+        .query-info h3 {
+            color: #8B4513;
+            margin-bottom: 10px;
+        }
+        
+        .query-info pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        
+        .table-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .search-box {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: #FFD700;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 20px;
+        }
+        
+        .page-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .page-btn.active {
+            background: #FFD700;
+            color: #333;
+            font-weight: bold;
+            border-color: #FFA500;
+        }
+        
+        .page-btn:hover {
+            background: #FFF8DC;
+            border-color: #FFD700;
+        }
+        
+        .page-btn:disabled {
+            background: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+            border-color: #dee2e6;
+        }
+        
+        .pagination-info {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>🔍 Oracle 19c 查詢系統</h1>
+            <div class="user-info">
+                <span class="username">👤 {{ current_user }}</span>
+                {% if is_admin %}
+                <a href="{{ url_for('auth.admin_choice') }}" class="logout">👑 管理後台</a>
+                {% endif %}
+                <a href="{{ url_for('search.index') }}" class="logout">🏠 回到首頁</a>
+                <a href="{{ url_for('auth.logout') }}" class="logout">🚪 登出</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="results-section">
+            <div class="results-header">
+                <h2>📊 查詢結果</h2>
+                <div class="results-info" id="resultsInfo"></div>
+            </div>
+            
+            <div class="query-info" id="queryInfo" style="display: none;">
+                <h3>🔍 執行的 SQL 查詢</h3>
+                <pre id="sqlQuery"></pre>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="toggleQueryInfo()">📝 查看查詢</button>
+                <button class="btn btn-success" onclick="exportResults()">📥 匯出結果</button>
+                <button class="btn btn-secondary" onclick="goBack()">🔙 返回</button>
+            </div>
+            
+            <div class="table-controls">
+                <input type="text" class="search-box" id="searchBox" placeholder="搜尋結果..." onkeyup="searchResults()">
+                <span id="recordCount"></span>
+            </div>
+            
+            <div id="resultsContent"></div>
+            
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+    
+    <script>
+        let queryData = [];
+        let filteredData = [];
+        let currentPage = 1;
+        const recordsPerPage = 50;
+        
+        // 頁面載入時處理 URL 參數
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dataParam = urlParams.get('data');
+            
+            if (dataParam) {
+                try {
+                    // 解碼 Base64 資料
+                    const decodedData = atob(dataParam);
+                    queryData = JSON.parse(decodedData);
+                    filteredData = [...queryData];
+                    
+                    displayResults();
+                    updateResultsInfo();
+                } catch (error) {
+                    console.error('解析查詢結果失敗:', error);
+                    showError('查詢結果解析失敗');
+                }
+            } else {
+                showError('沒有查詢結果資料');
+            }
+        });
+        
+        function displayResults() {
+            const resultsContent = document.getElementById('resultsContent');
+            
+            if (filteredData.length === 0) {
+                resultsContent.innerHTML = '<div class="no-results">📭 沒有找到符合條件的資料</div>';
+                document.getElementById('recordCount').textContent = '共 0 筆資料';
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+            
+            // 計算分頁
+            const startIndex = (currentPage - 1) * recordsPerPage;
+            const endIndex = startIndex + recordsPerPage;
+            const pageData = filteredData.slice(startIndex, endIndex);
+            
+            // 建立表格
+            let tableHTML = '<table class="results-table"><thead><tr>';
+            
+            // 表頭
+            const columns = Object.keys(pageData[0]);
+            columns.forEach(column => {
+                tableHTML += `<th>${column}</th>`;
+            });
+            tableHTML += '</tr></thead><tbody>';
+            
+            // 表格內容
+            pageData.forEach(row => {
+                tableHTML += '<tr>';
+                columns.forEach(column => {
+                    const value = row[column] !== null ? row[column] : '';
+                    tableHTML += `<td>${value}</td>`;
+                });
+                tableHTML += '</tr>';
+            });
+            
+            tableHTML += '</tbody></table>';
+            resultsContent.innerHTML = tableHTML;
+            
+            // 更新記錄數量
+            document.getElementById('recordCount').textContent = `共 ${filteredData.length} 筆資料 (第 ${startIndex + 1}-${Math.min(endIndex, filteredData.length)} 筆)`;
+            
+            // 更新分頁
+            updatePagination();
+        }
+        
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredData.length / recordsPerPage);
+            const pagination = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+            
+            let paginationHTML = '';
+            
+            // 上一頁
+            if (currentPage > 1) {
+                paginationHTML += `<button class="page-btn" onclick="changePage(${currentPage - 1})">上一頁</button>`;
+            }
+            
+            // 頁碼
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentPage) {
+                    paginationHTML += `<button class="page-btn active">${i}</button>`;
+                } else {
+                    paginationHTML += `<button class="page-btn" onclick="changePage(${i})">${i}</button>`;
+                }
+            }
+            
+            // 下一頁
+            if (currentPage < totalPages) {
+                paginationHTML += `<button class="page-btn" onclick="changePage(${currentPage + 1})">下一頁</button>`;
+            }
+            
+            pagination.innerHTML = paginationHTML;
+        }
+        
+        function changePage(page) {
+            currentPage = page;
+            displayResults();
+        }
+        
+        function searchResults() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            
+            if (searchTerm === '') {
+                filteredData = [...queryData];
+            } else {
+                filteredData = queryData.filter(row => {
+                    return Object.values(row).some(value => 
+                        value !== null && value.toString().toLowerCase().includes(searchTerm)
+                    );
+                });
+            }
+            
+            currentPage = 1;
+            displayResults();
+        }
+        
+        function updateResultsInfo() {
+            const resultsInfo = document.getElementById('resultsInfo');
+            const executionTime = new Date().toLocaleString();
+            resultsInfo.textContent = `查詢時間: ${executionTime} | 總筆數: ${queryData.length}`;
+        }
+        
+        function toggleQueryInfo() {
+            const queryInfo = document.getElementById('queryInfo');
+            const sqlQuery = document.getElementById('sqlQuery');
+            
+            if (queryInfo.style.display === 'none') {
+                // 這裡可以顯示實際的 SQL 查詢
+                sqlQuery.textContent = 'SELECT * FROM (查詢結果已傳遞)';
+                queryInfo.style.display = 'block';
+            } else {
+                queryInfo.style.display = 'none';
+            }
+        }
+        
+        function exportResults() {
+            if (filteredData.length === 0) {
+                alert('沒有資料可以匯出');
+                return;
+            }
+            
+            // 建立內容
+            let csvContent = '';
+            
+            // 表頭
+            const columns = Object.keys(filteredData[0]);
+            csvContent += columns.join(',') + '\n';
+            
+            // 資料行
+            filteredData.forEach(row => {
+                const values = columns.map(column => {
+                    const value = row[column] !== null ? row[column] : '';
+                    // 處理包含逗號或換行的值
+                    if (value.toString().includes(',') || value.toString().includes('\n')) {
+                        return `"${value.toString().replace(/"/g, '""')}"`;
+                    }
+                    return value;
+                });
+                csvContent += values.join(',') + '\n';
+            });
+            
+            // 建立下載
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `query_results_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function goBack() {
+            window.location.href = '{{ url_for("search.index") }}';
+        }
+        
+        function showError(message) {
+            const resultsContent = document.getElementById('resultsContent');
+            resultsContent.innerHTML = `<div class="no-results" style="color: #DC143C;">❌ ${message}</div>`;
+            document.getElementById('recordCount').textContent = '共 0 筆資料';
+            document.getElementById('pagination').innerHTML = '';
+        }
+    </script>
+</body>
+</html>

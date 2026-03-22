@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>按鈕編輯 - 系統管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft JhengHei', '微軟正黑體', Arial, sans-serif;
+            background: linear-gradient(135deg, #FFFFE0 0%, #FFF8DC 100%);
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #333;
+        }
+        
+        .user-info .username {
+            font-weight: bold;
+        }
+        
+        .user-info .logout {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #333;
+            transition: background 0.3s;
+        }
+        
+        .user-info .logout:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        
+        .editor-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            border: 2px solid #FFD700;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-header h2 {
+            color: #8B4513;
+            font-size: 24px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #FFA500, #FF8C00);
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .links-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .links-table th,
+        .links-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .links-table th {
+            background: #FFF8DC;
+            color: #8B4513;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+        
+        .links-table tr:hover {
+            background: #FFF8DC;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #FFD700;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .flash-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .flash-message.success {
+            background: #E8F5E8;
+            color: #2E7D32;
+            border: 1px solid #4CAF50;
+        }
+        
+        .flash-message.error {
+            background: #FFE4E1;
+            color: #DC143C;
+            border: 1px solid #FF6B6B;
+        }
+        
+        .flash-message.warning {
+            background: #FFF3E0;
+            color: #F57C00;
+            border: 1px solid #FF9800;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #FFD700;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            border: 2px solid #FFD700;
+        }
+        
+        .modal-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h2 {
+            color: #8B4513;
+            font-size: 20px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .modal-btn.confirm {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .modal-btn.confirm:hover {
+            background: #45a049;
+        }
+        
+        .modal-btn.cancel {
+            background: #f44336;
+            color: white;
+        }
+        
+        .modal-btn.cancel:hover {
+            background: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>⚙️ 系統管理 - 按鈕編輯</h1>
+            <div class="user-info">
+                <span class="username">👤 {{ current_user }}</span>
+                <a href="{{ url_for('auth.logout') }}" class="logout">🚪 登出</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        
+        <div class="editor-section">
+            <div class="section-header">
+                <h2>📝 按鈕管理</h2>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="showAddModal()">➕ 新增按鈕</button>
+                    <button class="btn btn-secondary" onclick="refreshLinks()">🔄 重新整理</button>
+                </div>
+            </div>
+            
+            <div id="linksTableContainer">
+                <div class="loading">載入按鈕資料中...</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 新增/編輯模態框 -->
+    <div id="linkModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">新增按鈕</h2>
+            </div>
+            
+            <form id="linkForm">
+                <input type="hidden" id="linkId" name="linkId">
+                
+                <div class="form-group">
+                    <label for="linkName">按鈕名稱：</label>
+                    <input type="text" id="linkName" name="linkName" required 
+                           placeholder="例如：進階搜尋">
+                </div>
+                
+                <div class="form-group">
+                    <label for="linkUrl">連結 URL：</label>
+                    <input type="text" id="linkUrl" name="linkUrl" required 
+                           placeholder="例如：/search/advanced">
+                </div>
+                
+                <div class="form-group">
+                    <label for="linkIcon">圖示：</label>
+                    <input type="text" id="linkIcon" name="linkIcon" required 
+                           placeholder="例如：🔍">
+                </div>
+                
+                <div class="form-group">
+                    <label for="linkDescription">描述：</label>
+                    <textarea id="linkDescription" name="linkDescription" required 
+                              placeholder="例如：使用進階搜尋功能"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="linkOrder">排序：</label>
+                        <input type="number" id="linkOrder" name="linkOrder" min="0" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="isActive">啟用狀態：</label>
+                        <select id="isActive" name="isActive" required>
+                            <option value="Y">啟用</option>
+                            <option value="N">停用</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="modal-buttons">
+                    <button type="submit" class="modal-btn confirm">💾 儲存</button>
+                    <button type="button" class="modal-btn cancel" onclick="closeModal()">❌ 取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        let linksData = [];
+        
+        // 頁面載入時初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadLinks();
+        });
+        
+        // 載入按鈕資料
+        function loadLinks() {
+            fetch('{{ url_for("auth.get_portal_links") }}')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    linksData = data.data;
+                    displayLinks();
+                } else {
+                    showError('載入按鈕資料失敗：' + data.message);
+                }
+            })
+            .catch(error => {
+                showError('載入按鈕資料失敗：' + error.message);
+            });
+        }
+        
+        // 顯示按鈕表格
+        function displayLinks() {
+            const container = document.getElementById('linksTableContainer');
+            
+            if (linksData.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #666;">📭 沒有按鈕資料</div>';
+                return;
+            }
+            
+            let tableHTML = `
+                <table class="links-table">
+                    <thead>
+                        <tr>
+                            <th>排序</th>
+                            <th>名稱</th>
+                            <th>URL</th>
+                            <th>圖示</th>
+                            <th>描述</th>
+                            <th>狀態</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            linksData.forEach(link => {
+                tableHTML += `
+                    <tr>
+                        <td>${link.LINK_ORDER}</td>
+                        <td>${link.LINK_NAME}</td>
+                        <td>${link.LINK_URL}</td>
+                        <td>${link.LINK_ICON}</td>
+                        <td>${link.LINK_DESCRIPTION}</td>
+                        <td>
+                            <span style="color: ${link.IS_ACTIVE === 'Y' ? '#28a745' : '#dc3545'};">
+                                ${link.IS_ACTIVE === 'Y' ? '✅ 啟用' : '❌ 停用'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" onclick="editLink(${link.LINK_ID})" style="padding: 5px 10px; font-size: 12px;">✏️ 編輯</button>
+                            <button class="btn btn-danger" onclick="deleteLink(${link.LINK_ID})" style="padding: 5px 10px; font-size: 12px;">🗑️ 刪除</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table>';
+            container.innerHTML = tableHTML;
+        }
+        
+        // 顯示新增模態框
+        function showAddModal() {
+            document.getElementById('modalTitle').textContent = '新增按鈕';
+            document.getElementById('linkForm').reset();
+            document.getElementById('linkId').value = '';
+            document.getElementById('linkOrder').value = linksData.length;
+            document.getElementById('isActive').value = 'Y';
+            document.getElementById('linkModal').style.display = 'block';
+        }
+        
+        // 編輯按鈕
+        function editLink(linkId) {
+            const link = linksData.find(l => l.LINK_ID === linkId);
+            if (!link) return;
+            
+            document.getElementById('modalTitle').textContent = '編輯按鈕';
+            document.getElementById('linkId').value = link.LINK_ID;
+            document.getElementById('linkName').value = link.LINK_NAME;
+            document.getElementById('linkUrl').value = link.LINK_URL;
+            document.getElementById('linkIcon').value = link.LINK_ICON;
+            document.getElementById('linkDescription').value = link.LINK_DESCRIPTION;
+            document.getElementById('linkOrder').value = link.LINK_ORDER;
+            document.getElementById('isActive').value = link.IS_ACTIVE;
+            document.getElementById('linkModal').style.display = 'block';
+        }
+        
+        // 刪除按鈕
+        function deleteLink(linkId) {
+            if (!confirm('確定要刪除這個按鈕嗎？')) {
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('linkId', linkId);
+            
+            fetch('{{ url_for("admin.delete_link") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess('按鈕刪除成功');
+                    closeModal();
+                    loadLinks();
+                } else {
+                    showError('刪除失敗：' + data.message);
+                }
+            })
+            .catch(error => {
+                showError('刪除失敗：' + error.message);
+            });
+        }
+        
+        // 關閉模態框
+        function closeModal() {
+            document.getElementById('linkModal').style.display = 'none';
+        }
+        
+        // 重新整理
+        function refreshLinks() {
+            loadLinks();
+        }
+        
+        // 表單提交
+        document.getElementById('linkForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const linkId = document.getElementById('linkId').value;
+            const url = linkId ? '{{ url_for("admin.update_link") }}' : '{{ url_for("admin.add_link") }}';
+            
+            fetch(url, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess(linkId ? '按鈕更新成功' : '按鈕新增成功');
+                    closeModal();
+                    loadLinks();
+                } else {
+                    showError('操作失敗：' + data.message);
+                }
+            })
+            .catch(error => {
+                showError('操作失敗：' + error.message);
+            });
+        });
+        
+        // 顯示成功訊息
+        function showSuccess(message) {
+            const flashDiv = document.createElement('div');
+            flashDiv.className = 'flash-message success';
+            flashDiv.textContent = '✅ ' + message;
+            
+            const container = document.querySelector('.flash-messages');
+            container.appendChild(flashDiv);
+            
+            setTimeout(() => {
+                flashDiv.remove();
+            }, 5000);
+        }
+        
+        // 顯示錯誤訊息
+        function showError(message) {
+            const flashDiv = document.createElement('div');
+            flashDiv.className = 'flash-message error';
+            flashDiv.textContent = '❌ ' + message;
+            
+            const container = document.querySelector('.flash-messages');
+            container.appendChild(flashDiv);
+            
+            setTimeout(() => {
+                flashDiv.remove();
+            }, 5000);
+        }
+        
+        // 點擊模態框外部關閉
+        window.onclick = function(event) {
+            const modal = document.getElementById('linkModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+        
+        // ESC 鍵關閉模態框
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
